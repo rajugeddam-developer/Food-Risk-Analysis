@@ -83,6 +83,16 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, category, ex.getMessage(), request, null);
     }
 
+    @ExceptionHandler(ProductMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleProductMismatch(ProductMismatchException ex, HttpServletRequest request) {
+        log.warn("Product mismatch detected on {}: {} (details: {})", request.getRequestURI(), ex.getMessage(), ex.getMismatchReason());
+        Map<String, String> details = null;
+        if (ex.getMismatchReason() != null) {
+            details = Map.of("mismatchReason", ex.getMismatchReason());
+        }
+        return buildResponse(HttpStatus.BAD_REQUEST, ErrorCategory.PRODUCT_MISMATCH, ex.getMessage(), request, details);
+    }
+
     @ExceptionHandler(ImageSizeLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleImageSizeExceeded(ImageSizeLimitExceededException ex, HttpServletRequest request) {
         log.warn("Image size limit exceeded: {}", ex.getMessage());
@@ -181,6 +191,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
+        Throwable root = org.springframework.core.NestedExceptionUtils.getMostSpecificCause(ex);
+        if (root instanceof ProductMismatchException pme) {
+            return handleProductMismatch(pme, request);
+        }
+        if (root instanceof InvalidImageException iie) {
+            return handleInvalidImage(iie, request);
+        }
+
         // Security guarantee: Suppress stack traces, internal class names, and JVM internals
         log.error("Unhandled server error on [{}]: {}", request.getRequestURI(), ex.getMessage(), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCategory.INTERNAL_ERROR,

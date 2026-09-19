@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '../router/Router';
 import { GlassCard } from '../components/common/GlassCard';
 import { Button } from '../components/common/Button';
+import { Icon } from '../components/common/Icon';
 import { ScoreGauge } from '../components/common/ScoreGauge';
 import {
   getFoodRiskAssessment,
@@ -15,6 +16,66 @@ import {
   type AgeGroupAwareness
 } from '../api/analysisApi';
 import './result.css';
+
+// ---------------------------------------------------------------------------
+// Authoritative Daily Nutritional Benchmarks (WHO / Codex / FSSAI Guidelines)
+// ---------------------------------------------------------------------------
+interface DailyBenchmark {
+  standardDaily: number;
+  unit: string;
+  isLimit: boolean;
+}
+
+const DAILY_BENCHMARKS: Record<string, DailyBenchmark> = {
+  ENERGY: { standardDaily: 2000, unit: 'kcal', isLimit: true },
+  CALORIES: { standardDaily: 2000, unit: 'kcal', isLimit: true },
+  TOTAL_FAT: { standardDaily: 70, unit: 'g', isLimit: true },
+  FAT: { standardDaily: 70, unit: 'g', isLimit: true },
+  SATURATED_FAT: { standardDaily: 20, unit: 'g', isLimit: true },
+  TRANS_FAT: { standardDaily: 2, unit: 'g', isLimit: true },
+  CARBOHYDRATES: { standardDaily: 260, unit: 'g', isLimit: true },
+  CARBOHYDRATE: { standardDaily: 260, unit: 'g', isLimit: true },
+  TOTAL_SUGARS: { standardDaily: 50, unit: 'g', isLimit: true },
+  SUGAR: { standardDaily: 50, unit: 'g', isLimit: true },
+  SUGARS: { standardDaily: 50, unit: 'g', isLimit: true },
+  ADDED_SUGARS: { standardDaily: 25, unit: 'g', isLimit: true },
+  PROTEIN: { standardDaily: 50, unit: 'g', isLimit: false },
+  SODIUM: { standardDaily: 2000, unit: 'mg', isLimit: true },
+  SALT: { standardDaily: 5, unit: 'g', isLimit: true },
+  FIBRE: { standardDaily: 30, unit: 'g', isLimit: false },
+  FIBER: { standardDaily: 30, unit: 'g', isLimit: false },
+  DIETARY_FIBRE: { standardDaily: 30, unit: 'g', isLimit: false },
+};
+
+function getDailyPercentage(nutrient: string, observedValue: number | null): { pct: number; levelClass: string; text: string } | null {
+  if (observedValue === null || observedValue === undefined || isNaN(observedValue)) {
+    return null;
+  }
+  const key = nutrient.toUpperCase().replace(/\s+/g, '_');
+  const benchmark = DAILY_BENCHMARKS[key];
+  if (!benchmark) return null;
+
+  const pct = Math.round((observedValue / benchmark.standardDaily) * 100);
+  let levelClass = 'stat-pct--safe';
+  if (benchmark.isLimit) {
+    if (pct > 25) {
+      levelClass = 'stat-pct--high';
+    } else if (pct > 12) {
+      levelClass = 'stat-pct--med';
+    }
+  } else {
+    // Beneficial nutrient (e.g. protein, fibre)
+    if (pct >= 20) {
+      levelClass = 'stat-pct--safe';
+    } else if (pct >= 10) {
+      levelClass = 'stat-pct--med';
+    } else {
+      levelClass = 'stat-pct--safe';
+    }
+  }
+
+  return { pct, levelClass, text: `${pct}% DV` };
+}
 
 // ---------------------------------------------------------------------------
 // High-Fidelity Mock Assessment for Standalone / Demo Preview Mode
@@ -398,7 +459,7 @@ const DEMO_ASSESSMENTS: Record<string, FoodRiskAssessment> = {
 };
 
 export const ResultPage: React.FC = () => {
-  const { navigate } = useRouter();
+  const { navigate, currentPath } = useRouter();
 
   // Active Tab state
   const [activeTab, setActiveTab] = useState<'overview' | 'ingredients' | 'nutrition' | 'breakdown' | 'standards'>('overview');
@@ -428,11 +489,19 @@ export const ResultPage: React.FC = () => {
       setIsLoading(true);
       setFetchError(null);
 
-      // Extract sessionId from URL query params
-      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-      const paramSessionId = urlParams ? urlParams.get('sessionId') : null;
-      const storedSessionId = typeof window !== 'undefined' ? sessionStorage.getItem('lastAnalysisSessionId') : null;
-      const targetSessionId = paramSessionId || storedSessionId;
+      // Extract sessionId from URL query params or currentPath or sessionStorage
+      let targetSessionId: string | null = null;
+      if (typeof window !== 'undefined' && window.location.search) {
+        const urlParams = new URLSearchParams(window.location.search);
+        targetSessionId = urlParams.get('sessionId');
+      }
+      if (!targetSessionId && currentPath && currentPath.includes('?')) {
+        const urlParams = new URLSearchParams(currentPath.substring(currentPath.indexOf('?')));
+        targetSessionId = urlParams.get('sessionId');
+      }
+      if (!targetSessionId && typeof window !== 'undefined') {
+        targetSessionId = sessionStorage.getItem('lastAnalysisSessionId');
+      }
 
       if (targetSessionId) {
         try {
@@ -470,7 +539,7 @@ export const ResultPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentPath]);
 
   const handleSwitchDemoState = (key: string) => {
     setDemoKey(key);
@@ -515,6 +584,22 @@ export const ResultPage: React.FC = () => {
     currentData.productCategory === 'PET_FOOD' ||
     currentData.productCategory === 'ANIMAL_FEED' ||
     currentData.productCategory === 'NON_FOOD';
+
+  const getProductName = () => {
+    if (currentData.productCategoryReason) {
+      const match = currentData.productCategoryReason.match(/Identified as ([^.]+)/i);
+      if (match && match[1]) return match[1].trim();
+    }
+    if (currentData.items && currentData.items.length > 0) {
+      const firstValid = currentData.items.find(i => i.normalizedName && !i.normalizedName.toLowerCase().includes('water'));
+      if (firstValid?.normalizedName) {
+        return `${firstValid.normalizedName}-Based Food`;
+      }
+    }
+    return currentData.productCategory === 'HUMAN_FOOD'
+      ? 'Packaged Food Product'
+      : currentData.productCategory.replace(/_/g, ' ');
+  };
 
   // Map overall status to score gauge band
   const getRiskBand = (_status: OverallFoodStatus, score: number | null): 'LOW' | 'MODERATE CONCERN' | 'HIGH' | 'CRITICAL' => {
@@ -624,8 +709,13 @@ export const ResultPage: React.FC = () => {
       <div className="result-container">
         {/* Header Breadcrumb / Title */}
         <div className="result-header">
-          <span className="result-badge">MILESTONE M11 • FOOD AWARENESS REPORT</span>
-          <h1 className="result-title">Food Risk Assessment</h1>
+          <div className="result-badge">
+            <span className="result-badge-dot" />
+            <span>FOOD AWARENESS REPORT</span>
+          </div>
+          <h1 className="result-title">
+            Food Risk <span className="text-gradient-cyan">Assessment</span>
+          </h1>
           <p className="result-product-meta">
             {currentData.productCategoryReason || 'Packaged Consumable Product'}
             <span className="meta-separator">•</span>
@@ -637,7 +727,7 @@ export const ResultPage: React.FC = () => {
         {isDemoMode && (
           <div className="demo-preview-banner">
             <div className="demo-banner-content">
-              <span className="demo-banner-icon" aria-hidden="true">🛠️</span>
+              <Icon name="sparkles" size={18} color="#20c9ff" className="demo-banner-icon" />
               <div className="demo-banner-text">
                 <strong>Interactive Demo Preview:</strong> Viewing high-fidelity verification dataset.
                 You can switch between human food, pet food, and non-food test scenarios below.
@@ -649,21 +739,21 @@ export const ResultPage: React.FC = () => {
                 className={`demo-chip ${demoKey === 'SAMPLE_CRISPS' ? 'demo-chip--active' : ''}`}
                 onClick={() => handleSwitchDemoState('SAMPLE_CRISPS')}
               >
-                🥔 Human Food (Savory Crisps)
+                Savory Crisps (Human Food)
               </button>
               <button
                 type="button"
                 className={`demo-chip ${demoKey === 'PET_FOOD_EXAMPLE' ? 'demo-chip--active' : ''}`}
                 onClick={() => handleSwitchDemoState('PET_FOOD_EXAMPLE')}
               >
-                🐾 Pet Food Warning
+                Pet Food Warning
               </button>
               <button
                 type="button"
                 className={`demo-chip ${demoKey === 'NON_FOOD_EXAMPLE' ? 'demo-chip--active' : ''}`}
                 onClick={() => handleSwitchDemoState('NON_FOOD_EXAMPLE')}
               >
-                🛑 Household Chemical Warning
+                Chemical Warning
               </button>
             </div>
           </div>
@@ -671,7 +761,7 @@ export const ResultPage: React.FC = () => {
 
         {fetchError && (
           <div className="scan-validation-alert" role="alert" style={{ marginBottom: '1.5rem' }}>
-            <span aria-hidden="true">⚠️</span>
+            <Icon name="alert-triangle" size={18} color="#f87171" />
             <span>{fetchError}</span>
           </div>
         )}
@@ -685,7 +775,9 @@ export const ResultPage: React.FC = () => {
         {/* HIGH-VISIBILITY HUMAN CONSUMPTION STATUS BANNER */}
         {isNonHumanFood ? (
           <div className="consumption-warning-banner" role="alert">
-            <div className="warning-banner-icon">🛑</div>
+            <div className="warning-banner-icon">
+              <Icon name="alert-triangle" size={28} color="#ef4444" />
+            </div>
             <div className="warning-banner-body">
               <h3 className="warning-banner-title">NOT INTENDED FOR HUMAN CONSUMPTION</h3>
               <p className="warning-banner-desc">
@@ -699,7 +791,9 @@ export const ResultPage: React.FC = () => {
           </div>
         ) : (
           <div className="consumption-verified-banner" role="status">
-            <span className="verified-icon">🍽️</span>
+            <span className="verified-icon">
+              <Icon name="check" size={18} color="#10b981" />
+            </span>
             <span className="verified-text">
               <strong>Verified Packaged Human Food:</strong> Formulated and packaged for human dietary consumption.
             </span>
@@ -725,14 +819,18 @@ export const ResultPage: React.FC = () => {
                       className="result-status-pill"
                       style={{ color: statusMeta.color, background: statusMeta.bg, border: `1px solid ${statusMeta.color}40` }}
                     >
-                      {statusMeta.icon} {statusMeta.label}
+                      {statusMeta.label}
                     </span>
                   </div>
                 </>
               ) : (
                 <div className="score-withheld-box">
                   <div className="score-withheld-icon">
-                    {currentData.scoreEligibility === 'UNRATED' ? '📋' : '⚠️'}
+                    {currentData.scoreEligibility === 'UNRATED' ? (
+                      <Icon name="file-text" size={36} color="#94a3b8" />
+                    ) : (
+                      <Icon name="alert-triangle" size={36} color="#fbbf24" />
+                    )}
                   </div>
                   <h3 className="score-withheld-title">
                     {currentData.scoreEligibility === 'UNRATED' ? 'UNRATED' : 'Score Withheld'}
@@ -763,9 +861,7 @@ export const ResultPage: React.FC = () => {
                   )}
                 </div>
                 <h2 className="summary-product-name">
-                  {currentData.productCategory === 'HUMAN_FOOD'
-                    ? 'Packaged Savory Snack'
-                    : currentData.productCategory.replace(/_/g, ' ')}
+                  {getProductName()}
                 </h2>
               </div>
 
@@ -790,7 +886,7 @@ export const ResultPage: React.FC = () => {
           {/* Key Concerns Card */}
           <GlassCard variant="default" padding="medium" className="concern-card">
             <div className="highlight-header">
-              <span className="highlight-icon" aria-hidden="true">⚠️</span>
+              <Icon name="alert-triangle" size={18} color="#f87171" className="highlight-icon" />
               <h4 className="highlight-title">Key Attention Flags</h4>
             </div>
             {currentData.keyConcerns.length > 0 ? (
@@ -809,7 +905,7 @@ export const ResultPage: React.FC = () => {
           {/* Positive Indicators Card */}
           <GlassCard variant="default" padding="medium" className="positive-card">
             <div className="highlight-header">
-              <span className="highlight-icon" aria-hidden="true">✨</span>
+              <Icon name="sparkles" size={18} color="#34d399" className="highlight-icon" />
               <h4 className="highlight-title">Positive Attributes</h4>
             </div>
             {currentData.positiveIndicators.length > 0 ? (
@@ -1155,17 +1251,108 @@ export const ResultPage: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Highlight Macro KPI Cards (Energy, Fat, Sugar, Sodium) */}
+                  {(() => {
+                    const findings = currentData.nutritionSummary.findings;
+                    const energyFinding = findings.find(f => f.nutrient === 'ENERGY');
+                    const fatFinding = findings.find(f => f.nutrient === 'TOTAL_FAT');
+                    const sugarFinding = findings.find(f => f.nutrient === 'TOTAL_SUGARS' || f.nutrient === 'ADDED_SUGARS');
+                    const sodiumFinding = findings.find(f => f.nutrient === 'SODIUM');
+
+                    const energyDv = energyFinding ? getDailyPercentage('ENERGY', energyFinding.observedValue) : null;
+                    const fatDv = fatFinding ? getDailyPercentage('TOTAL_FAT', fatFinding.observedValue) : null;
+                    const sugarDv = sugarFinding ? getDailyPercentage('TOTAL_SUGARS', sugarFinding.observedValue) : null;
+                    const sodiumDv = sodiumFinding ? getDailyPercentage('SODIUM', sodiumFinding.observedValue) : null;
+
+                    return (
+                      <div className="macro-kpi-grid">
+                        <div className="macro-kpi-card">
+                          <div className="macro-kpi-header">
+                            <span className="macro-kpi-title">Calories</span>
+                            {energyDv && (
+                              <span className={`macro-kpi-pill ${energyDv.levelClass}`}>
+                                {energyDv.text}
+                              </span>
+                            )}
+                          </div>
+                          <div className="macro-kpi-value-row">
+                            <span className="macro-kpi-value">{energyFinding?.observedValue ?? 'N/A'}</span>
+                            <span className="macro-kpi-unit">{energyFinding?.observedUnit || 'kcal'}</span>
+                          </div>
+                          <span className="macro-kpi-dv-sub">WHO Benchmark: 2,000 kcal / day</span>
+                        </div>
+
+                        <div className="macro-kpi-card">
+                          <div className="macro-kpi-header">
+                            <span className="macro-kpi-title">Total Fat</span>
+                            {fatDv && (
+                              <span className={`macro-kpi-pill ${fatDv.levelClass}`}>
+                                {fatDv.text}
+                              </span>
+                            )}
+                          </div>
+                          <div className="macro-kpi-value-row">
+                            <span className="macro-kpi-value">{fatFinding?.observedValue ?? 'N/A'}</span>
+                            <span className="macro-kpi-unit">{fatFinding?.observedUnit || 'g'}</span>
+                          </div>
+                          <span className="macro-kpi-dv-sub">Target: &lt; 70g daily</span>
+                        </div>
+
+                        <div className="macro-kpi-card">
+                          <div className="macro-kpi-header">
+                            <span className="macro-kpi-title">Total Sugars</span>
+                            {sugarDv && (
+                              <span className={`macro-kpi-pill ${sugarDv.levelClass}`}>
+                                {sugarDv.text}
+                              </span>
+                            )}
+                          </div>
+                          <div className="macro-kpi-value-row">
+                            <span className="macro-kpi-value">{sugarFinding?.observedValue ?? 'N/A'}</span>
+                            <span className="macro-kpi-unit">{sugarFinding?.observedUnit || 'g'}</span>
+                          </div>
+                          <span className="macro-kpi-dv-sub">WHO Max: 50g free sugars</span>
+                        </div>
+
+                        <div className="macro-kpi-card">
+                          <div className="macro-kpi-header">
+                            <span className="macro-kpi-title">Sodium</span>
+                            {sodiumDv && (
+                              <span className={`macro-kpi-pill ${sodiumDv.levelClass}`}>
+                                {sodiumDv.text}
+                              </span>
+                            )}
+                          </div>
+                          <div className="macro-kpi-value-row">
+                            <span className="macro-kpi-value">{sodiumFinding?.observedValue ?? 'N/A'}</span>
+                            <span className="macro-kpi-unit">{sodiumFinding?.observedUnit || 'mg'}</span>
+                          </div>
+                          <span className="macro-kpi-dv-sub">WHO Max: 2,000 mg / day</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <div className="nutrition-grid-modern">
                     {currentData.nutritionSummary.findings.map((f: NutritionFinding, idx: number) => {
                       const isHigh = f.status === 'ABOVE_REFERENCE';
                       const isWithin = f.status === 'WITHIN_REFERENCE';
+                      const dvData = getDailyPercentage(f.nutrient, f.observedValue);
+
                       return (
                         <div key={idx} className={`nutrition-stat-card ${isHigh ? 'nutrition-stat-card--high' : ''}`}>
                           <div className="stat-card-header">
                             <span className="stat-nutrient-name">{f.nutrient.replace(/_/g, ' ')}</span>
-                            <span className={`stat-status-badge ${isHigh ? 'stat-badge--above' : isWithin ? 'stat-badge--within' : 'stat-badge--neutral'}`}>
-                              {f.status.replace(/_/g, ' ')}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {dvData && (
+                                <span className={`stat-percentage-badge ${dvData.levelClass}`}>
+                                  {dvData.text}
+                                </span>
+                              )}
+                              <span className={`stat-status-badge ${isHigh ? 'stat-badge--above' : isWithin ? 'stat-badge--within' : 'stat-badge--neutral'}`}>
+                                {f.status.replace(/_/g, ' ')}
+                              </span>
+                            </div>
                           </div>
 
                           <div className="stat-value-row">
@@ -1173,9 +1360,18 @@ export const ResultPage: React.FC = () => {
                             <span className="stat-unit">{f.observedUnit}</span>
                           </div>
 
+                          {dvData && (
+                            <div className="stat-progress-track">
+                              <div
+                                className={`stat-progress-fill ${dvData.levelClass}`}
+                                style={{ width: `${Math.min(dvData.pct, 100)}%` }}
+                              />
+                            </div>
+                          )}
+
                           {f.referenceValue !== null && (
                             <div className="stat-reference-row">
-                              <span>Reference Threshold:</span>
+                              <span>Reference Benchmark:</span>
                               <strong>{f.referenceValue} {f.referenceUnit}</strong>
                             </div>
                           )}
@@ -1305,7 +1501,7 @@ export const ResultPage: React.FC = () => {
               <div className="standards-citations-list">
                 {currentData.sources.map((src, idx) => (
                   <div key={idx} className="citation-card">
-                    <span className="citation-bullet" aria-hidden="true">📜</span>
+                    <Icon name="file-text" size={20} color="#20c9ff" className="citation-bullet" />
                     <div>
                       <strong className="citation-name">{src}</strong>
                       <p className="citation-desc">
@@ -1323,27 +1519,27 @@ export const ResultPage: React.FC = () => {
         <div className="result-actions-row">
           <Button
             variant="primary"
-            size="large"
+            size="medium"
             onClick={() => navigate('/scan')}
-            icon={<span aria-hidden="true">📸</span>}
+            icon={<Icon name="camera" size={18} />}
           >
             SCAN ANOTHER FOOD
           </Button>
 
           <Button
             variant="outline"
-            size="large"
+            size="medium"
             onClick={handleShareClick}
-            icon={<span aria-hidden="true">🔗</span>}
+            icon={<Icon name="external-link" size={18} />}
           >
             SHARE ASSESSMENT
           </Button>
 
           <Button
-            variant="ghost"
-            size="large"
+            variant="outline"
+            size="medium"
             onClick={handlePrint}
-            icon={<span aria-hidden="true">🖨️</span>}
+            icon={<Icon name="file-text" size={18} />}
           >
             PRINT REPORT
           </Button>
@@ -1352,7 +1548,7 @@ export const ResultPage: React.FC = () => {
         {/* PERSISTENT EDUCATIONAL AWARENESS BANNER */}
         <GlassCard variant="subtle" padding="large" className="result-disclaimer-card">
           <div className="disclaimer-header-row">
-            <span className="disclaimer-icon" aria-hidden="true">🛡️</span>
+            <Icon name="shield" size={24} color="#20c9ff" className="disclaimer-icon" />
             <div>
               <h4 className="disclaimer-heading">EDUCATIONAL AWARENESS &amp; TRANSPARENCY NOTICE</h4>
               <p className="disclaimer-copy">
@@ -1370,8 +1566,8 @@ export const ResultPage: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(6px)',
+            backgroundColor: 'rgba(3, 6, 10, 0.85)',
+            backdropFilter: 'blur(16px)',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
@@ -1379,24 +1575,25 @@ export const ResultPage: React.FC = () => {
             padding: '1rem'
           }}>
             <div className="know-more-modal" style={{
-              background: '#0f172a',
-              border: '1px solid rgba(45, 212, 191, 0.3)',
+              background: '#080d16',
+              border: '1px solid rgba(180, 205, 220, 0.28)',
               borderRadius: '16px',
               maxWidth: '520px',
               width: '100%',
               padding: '1.75rem',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)'
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(32, 201, 255, 0.15)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>💡</span> Know More: {explainingItem}
+                  <Icon name="info" size={20} color="#20c9ff" /> Know More: {explainingItem}
                 </h4>
                 <button
                   type="button"
                   onClick={() => setExplainingItem(null)}
-                  style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}
+                  style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+                  aria-label="Close modal"
                 >
-                  &times;
+                  <Icon name="close" size={18} />
                 </button>
               </div>
 
@@ -1447,25 +1644,279 @@ export const ResultPage: React.FC = () => {
               ) : null}
 
               <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="small"
                   onClick={() => setExplainingItem(null)}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: 'none',
-                    color: '#f8fafc',
-                    padding: '6px 16px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 500
-                  }}
                 >
                   Close
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         )}
+      </div>
+
+      {/* DEDICATED EXECUTIVE PRINT & PDF REPORT */}
+      <div className="print-executive-report" aria-hidden="true">
+        {/* 1. Official Document Header */}
+        <div className="print-header">
+          <div className="print-header-brand">
+            <div className="print-brand-badge">FOOD RISK ANALYSIS &bull; KNOW WHAT YOU EAT</div>
+            <h1 className="print-report-title">Product Safety &amp; Nutritional Assessment Report</h1>
+            <p className="print-report-subtitle">
+              Independent Food Literacy, Additive Safety &amp; Nutritional Quality Evaluation Grounded in FSSAI, WHO, and Codex Alimentarius Standards
+            </p>
+          </div>
+          <div className="print-header-meta">
+            <div><strong>Report ID:</strong> {currentData.sessionId || 'N/A'}</div>
+            <div><strong>Generated:</strong> {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+            <div><strong>Engine:</strong> Google Gemini 3.5 AI Vision + Regulatory Standards Engine</div>
+            <div><strong>Status:</strong> {statusMeta.label}</div>
+          </div>
+        </div>
+
+        {/* 2. Product Summary & Overall Score Card */}
+        <div className="print-section print-summary-box">
+          <div className="print-product-info">
+            <div className="print-pill-row">
+              <span className="print-badge-category">CATEGORY: {currentData.productCategory.replace(/_/g, ' ')}</span>
+              <span className="print-badge-reliability">RELIABILITY: {currentData.assessmentReliability}</span>
+              {currentData.nutritionDataCompleteness && (
+                <span className="print-badge-completeness">DATA: {currentData.nutritionDataCompleteness}</span>
+              )}
+            </div>
+            <h2 className="print-product-name">{getProductName()}</h2>
+            <p className="print-product-desc">{currentData.productCategoryReason || 'Packaged consumable product'}</p>
+          </div>
+          <div className="print-score-box">
+            <div className="print-score-value">
+              {currentData.overallScore !== null ? currentData.overallScore : 'N/A'}
+              <span className="print-score-max">/100</span>
+            </div>
+            <div className={`print-score-status print-status--${currentData.overallStatus.toLowerCase()}`}>
+              {statusMeta.label}
+            </div>
+            <div className="print-score-caption">Food Awareness Score</div>
+          </div>
+        </div>
+
+        {/* 3. Safety Highlights: Key Attention Flags & Positive Attributes */}
+        <div className="print-section print-highlights-grid">
+          <div className="print-highlight-col">
+            <h3 className="print-subheading print-subheading--concern">Key Attention Flags ({currentData.keyConcerns.length})</h3>
+            {currentData.keyConcerns.length > 0 ? (
+              <ul className="print-bullet-list">
+                {currentData.keyConcerns.map((c, i) => (
+                  <li key={i} className="print-bullet-item print-bullet--concern">&bull; {c}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="print-empty-text">No critical hazards or excessive risk factors detected.</p>
+            )}
+          </div>
+          <div className="print-highlight-col">
+            <h3 className="print-subheading print-subheading--positive">Positive Attributes ({currentData.positiveIndicators.length})</h3>
+            {currentData.positiveIndicators.length > 0 ? (
+              <ul className="print-bullet-list">
+                {currentData.positiveIndicators.map((p, i) => (
+                  <li key={i} className="print-bullet-item print-bullet--positive">&bull; {p}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="print-empty-text">No distinct positive nutritional indicators declared.</p>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Core Macronutrient Highlights (% Daily Value Table/Grid) */}
+        {currentData.nutritionSummary && (
+          <div className="print-section">
+            <h3 className="print-section-title">Essential Macronutrient Highlights &amp; % Daily Value (% DV)</h3>
+            <div className="print-macro-grid">
+              {(() => {
+                const findings = currentData.nutritionSummary.findings || [];
+                const kpis = [
+                  { label: 'Calories', nutrient: 'ENERGY', defaultUnit: 'kcal', benchmark: '2,000 kcal / day' },
+                  { label: 'Total Fat', nutrient: 'TOTAL_FAT', defaultUnit: 'g', benchmark: '< 70g daily' },
+                  { label: 'Saturated Fat', nutrient: 'SATURATED_FAT', defaultUnit: 'g', benchmark: '< 20g daily' },
+                  { label: 'Total Sugars', nutrient: 'TOTAL_SUGARS', defaultUnit: 'g', benchmark: '< 50g daily' },
+                  { label: 'Added Sugars', nutrient: 'ADDED_SUGARS', defaultUnit: 'g', benchmark: '< 25g daily' },
+                  { label: 'Sodium', nutrient: 'SODIUM', defaultUnit: 'mg', benchmark: '< 2,000mg daily' },
+                  { label: 'Dietary Fibre', nutrient: 'FIBRE', defaultUnit: 'g', benchmark: '30g target' },
+                  { label: 'Protein', nutrient: 'PROTEIN', defaultUnit: 'g', benchmark: '50g target' }
+                ];
+
+                return kpis.map(kpi => {
+                  const f = findings.find(item => item.nutrient === kpi.nutrient);
+                  const dv = f ? getDailyPercentage(kpi.nutrient, f.observedValue) : null;
+                  return (
+                    <div key={kpi.label} className="print-macro-card">
+                      <div className="print-macro-card-title">{kpi.label}</div>
+                      <div className="print-macro-card-val">
+                        {f && f.observedValue !== null ? f.observedValue : 'N/A'} {f ? f.observedUnit : kpi.defaultUnit}
+                      </div>
+                      {dv ? (
+                        <div className={`print-macro-card-dv ${dv.levelClass}`}>
+                          <strong>{dv.text}</strong> of Standard Daily Benchmark
+                        </div>
+                      ) : (
+                        <div className="print-macro-card-dv-sub">{kpi.benchmark}</div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* 5. Complete Nutrition Facts Evaluation Table */}
+        {currentData.nutritionSummary && (
+          <div className="print-section print-table-section">
+            <h3 className="print-section-title">Complete Nutrition Facts &amp; Dietary Reference Standards</h3>
+            <p className="print-section-sub">
+              Declared Basis: <strong>{currentData.nutritionSummary.declaredBasis.replace(/_/g, ' ')}</strong>
+              {currentData.nutritionSummary.servingSizeGrams && (
+                <span> | Serving Size: {currentData.nutritionSummary.servingSizeGrams}g</span>
+              )}
+            </p>
+            <table className="print-table">
+              <thead>
+                <tr>
+                  <th>Nutrient</th>
+                  <th>Observed Value</th>
+                  <th>% Daily Value (% DV)</th>
+                  <th>Reference Limit</th>
+                  <th>Evaluation Status</th>
+                  <th>Scientific Rationale &amp; Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentData.nutritionSummary.findings.map((f, idx) => {
+                  const dv = getDailyPercentage(f.nutrient, f.observedValue);
+                  return (
+                    <tr key={idx}>
+                      <td className="print-td-bold">{f.nutrient.replace(/_/g, ' ')}</td>
+                      <td className="print-td-num">{f.observedValue !== null ? `${f.observedValue} ${f.observedUnit}` : 'N/A'}</td>
+                      <td className="print-td-num">{dv ? dv.text : '—'}</td>
+                      <td className="print-td-num">{f.referenceValue !== null ? `${f.referenceValue} ${f.referenceUnit}` : 'None Set'}</td>
+                      <td>
+                        <span className={`print-badge print-badge--${f.status.toLowerCase().replace(/_/g, '-')}`}>
+                          {f.status.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="print-td-reason">{f.reason || 'Evaluated against dietary guidelines.'} ({f.sourceIds?.join(', ') || 'FSSAI/WHO'})</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* 6. Complete Ingredients Statement & Additive INS Registry */}
+        <div className="print-section print-table-section">
+          <h3 className="print-section-title">
+            Full Ingredients Statement &amp; Additive Registry ({rawIngredients.length} Ingredients, {currentData.ingredientSummary?.additivesDetected ?? 0} Additives)
+          </h3>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ingredient Name</th>
+                <th>Additive Code (INS/E)</th>
+                <th>Functional Class</th>
+                <th>Risk / Attention Level</th>
+                <th>Regulatory Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rawIngredients.map((item, idx) => (
+                <tr key={idx}>
+                  <td className="print-td-num">{idx + 1}</td>
+                  <td className="print-td-bold">{item.originalIngredient || item.normalizedName}</td>
+                  <td>{item.additiveCode ? <strong className="print-code-pill">{item.additiveCode}</strong> : '—'}</td>
+                  <td>{item.functionalClass || 'Food Ingredient'}</td>
+                  <td>
+                    <span className={`print-badge print-badge--${item.riskLevel.toLowerCase().replace(/_/g, '-')}`}>
+                      {item.riskLevel.replace(/_/g, ' ')}
+                    </span>
+                  </td>
+                  <td>{item.regulatoryStatus || 'PERMITTED'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 7. Demographic Guidance */}
+        {currentData.ageGroupAwareness && currentData.ageGroupAwareness.length > 0 && (
+          <div className="print-section">
+            <h3 className="print-section-title">Demographic &amp; Age-Group Eating Guidance</h3>
+            <div className="print-demo-grid">
+              {currentData.ageGroupAwareness.map((ag, idx) => (
+                <div key={idx} className="print-demo-card">
+                  <div className="print-demo-header">
+                    <strong className="print-demo-title">{ag.ageGroup.replace(/_/g, ' ')}</strong>
+                    <span className={`print-badge print-badge--${ag.attentionLevel.toLowerCase().replace(/_/g, '-')}`}>
+                      {ag.attentionLevel.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <p className="print-demo-summary">{ag.summary}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 8. Explainable Score Waterfall Breakdown */}
+        {currentData.overallScore !== null && currentData.scoreBreakdown && currentData.scoreBreakdown.length > 0 && (
+          <div className="print-section">
+            <h3 className="print-section-title">Explainable Score Calculation &amp; Anti-Double-Counting</h3>
+            <table className="print-table">
+              <thead>
+                <tr>
+                  <th>Factor / Evaluation Step</th>
+                  <th>Impact</th>
+                  <th>Scientific Reasoning &amp; Regulatory Basis</th>
+                  <th>Authority</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="print-td-bold">Starting Health Baseline</td>
+                  <td className="print-td-num"><strong>100</strong></td>
+                  <td>Default baseline score before product penalties and nutritional adjustments.</td>
+                  <td>System</td>
+                </tr>
+                {currentData.scoreBreakdown.map((item, idx) => (
+                  <tr key={idx}>
+                    <td className="print-td-bold">{item.factor.replace(/_/g, ' ')}</td>
+                    <td className="print-td-num" style={{ color: item.impact > 0 ? '#166534' : '#991b1b', fontWeight: 700 }}>
+                      {item.impact > 0 ? `+${item.impact}` : item.impact}
+                    </td>
+                    <td>{item.reason}</td>
+                    <td>{item.source || 'FSSAI/WHO'}</td>
+                  </tr>
+                ))}
+                <tr className="print-total-row">
+                  <td className="print-td-bold">Final Food Awareness Score</td>
+                  <td className="print-td-num"><strong>{currentData.overallScore} / 100</strong></td>
+                  <td colSpan={2}><strong>{statusMeta.label}</strong> &mdash; Determined via deterministic penalty weighting and anti-double-counting composite rules.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* 9. Official Regulatory Disclaimer */}
+        <div className="print-section print-disclaimer-box">
+          <h4>EDUCATIONAL AWARENESS &amp; TRANSPARENCY NOTICE (FSSAI / WHO / CODEX ALIMENTARIUS)</h4>
+          <p>
+            This Food Risk Analysis report is generated strictly for consumer educational awareness and dietary literacy. It is grounded in publicly available FSSAI, WHO, and Codex Alimentarius guidelines. This tool does not diagnose, treat, or prevent any medical condition and does not substitute for personalized clinical advice from qualified healthcare professionals.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -27,6 +27,15 @@ public interface FoodAnalysisSessionRepository extends JpaRepository<FoodAnalysi
     Optional<FoodAnalysisSession> findBySessionToken(String sessionToken);
 
     /**
+     * Looks up a session by ID with the associated User eagerly fetched.
+     *
+     * @param id session UUID
+     * @return Optional containing session if found
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT s FROM FoodAnalysisSession s LEFT JOIN FETCH s.user WHERE s.id = :id")
+    Optional<FoodAnalysisSession> findByIdWithUser(@org.springframework.data.repository.query.Param("id") UUID id);
+
+    /**
      * Finds all sessions that have an expiration timestamp before the specified instant.
      * Useful for scheduled eviction or cleanup of transient sessions.
      *

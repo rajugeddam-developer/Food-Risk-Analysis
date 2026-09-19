@@ -1,6 +1,7 @@
 import React from 'react';
 import { GlassCard } from '../common/GlassCard';
 import { Button } from '../common/Button';
+import { Icon } from '../common/Icon';
 
 interface ScanProgressModalProps {
   isOpen: boolean;
@@ -89,7 +90,7 @@ export const ScanProgressModal: React.FC<ScanProgressModalProps> = ({
           /* Error / Failure State */
           <div className="scan-progress-error-view">
             <div className="scan-progress-icon-badge scan-progress-icon-badge--error" aria-hidden="true">
-              ⚠️
+              <Icon name="alert-triangle" size={26} color="#f87171" />
             </div>
             <h3 id="scan-modal-title" className="scan-progress-title" style={{ color: '#f87171' }}>
               Analysis Incomplete
@@ -107,7 +108,7 @@ export const ScanProgressModal: React.FC<ScanProgressModalProps> = ({
 
             <div className="scan-progress-error-actions">
               {onRetry && (
-                <Button variant="primary" size="medium" onClick={onRetry} icon={<span>🔄</span>}>
+                <Button variant="primary" size="medium" onClick={onRetry} icon={<Icon name="refresh" size={16} />}>
                   Try Again
                 </Button>
               )}
@@ -124,7 +125,7 @@ export const ScanProgressModal: React.FC<ScanProgressModalProps> = ({
             <div className="scan-progress-header">
               <span className="scan-progress-icon-badge" aria-hidden="true">
                 <span className="scan-radar-pulse" />
-                🔍
+                <Icon name="sparkles" size={24} color="#20c9ff" />
               </span>
               <h3 id="scan-modal-title" className="scan-progress-title">
                 Analyzing Food Product
@@ -169,7 +170,7 @@ export const ScanProgressModal: React.FC<ScanProgressModalProps> = ({
                     }`}
                   >
                     <span className="scan-step-dot">
-                      {isStepComplete ? '✓' : idx + 1}
+                      {isStepComplete ? <Icon name="check" size={12} color="#03060a" /> : idx + 1}
                     </span>
                     <span className="scan-step-text">{st.title}</span>
                   </div>

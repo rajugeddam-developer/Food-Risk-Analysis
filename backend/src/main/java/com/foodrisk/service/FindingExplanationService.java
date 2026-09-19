@@ -32,6 +32,7 @@ import java.util.UUID;
  * - Fallback to deterministic summaries on Gemini failure or invalid output.
  */
 @Service
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class FindingExplanationService {
 
     private static final Logger log = LoggerFactory.getLogger(FindingExplanationService.class);
@@ -59,15 +60,7 @@ public class FindingExplanationService {
         }
 
         // 1. Session verification & ownership check
-        FoodAnalysisSession session = sessionService.getActiveSession(sessionId);
-        if (session != null && session.getUser() != null) {
-            if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-                throw new AccessDeniedException("Authentication required to access this analysis session.");
-            }
-            if (!session.getUser().getEmail().equalsIgnoreCase(authentication.getName())) {
-                throw new AccessDeniedException("You do not have permission to access this session's findings.");
-            }
-        }
+        sessionService.validateSessionAccess(sessionId, authentication);
 
         // 2. Load verified analysis
         FoodRiskAssessment assessment = contextStore.getFoodRiskAssessment(sessionId)

@@ -1,0 +1,178 @@
+/* ==========================================================================
+   Ambient Cinematic Background (Reference 02, 04, 05 Visual Authority)
+   ========================================================================== */
+
+.ambient-background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background-color: #03070B;
+}
+
+/* Layer 1: Base Gradient Abyss */
+.ambient-base-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 10%, #08131D 0%, #061018 40%, #03070B 90%);
+}
+
+/* Layer 2: Volumetric Top Spotlight (Reference 05) */
+.ambient-spotlight-beam {
+  position: absolute;
+  top: -100px;
+  right: 15%;
+  width: 600px;
+  height: 900px;
+  background: conic-gradient(from 180deg at 50% 0%, rgba(32, 199, 255, 0.18) 0deg, rgba(25, 200, 255, 0.04) 30deg, transparent 65deg, transparent 295deg, rgba(25, 200, 255, 0.04) 330deg, rgba(32, 199, 255, 0.18) 360deg);
+  filter: blur(45px);
+  opacity: 0.75;
+  transform-origin: top center;
+  animation: spotlightSway 28s ease-in-out infinite alternate;
+}
+
+/* Layer 3: Flowing Luminous Silk Wave Canvas (User Reference Replica) */
+.ambient-flowing-wave-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 0 25px rgba(32, 199, 255, 0.45));
+}
+
+/* Layer 5: Deep Blue Headings Atmospheric Glow */
+.ambient-glow-navy {
+  position: absolute;
+  top: 15%;
+  left: -10%;
+  width: 700px;
+  height: 550px;
+  background: radial-gradient(circle at center, rgba(20, 55, 95, 0.28) 0%, rgba(10, 30, 60, 0.1) 50%, transparent 75%);
+  filter: blur(90px);
+  border-radius: 50%;
+  animation: glowNavyPulse 24s ease-in-out infinite alternate;
+}
+
+/* Layer 6: Subtle Scientific Precision Grid */
+.ambient-technical-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(32, 199, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(32, 199, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 30%, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 80%);
+  opacity: 0.65;
+}
+
+/* Layer 7: Micro Studio Light Dust / Film Grain */
+.ambient-film-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+}
+
+/* Layer 8: Gentle Interactive Cursor Ambient Light */
+.ambient-cursor-light {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  margin-left: -250px;
+  margin-top: -250px;
+  background: radial-gradient(circle at center, rgba(32, 199, 255, 0.07) 0%, rgba(16, 201, 139, 0.02) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+  transition: transform 120ms ease-out, opacity 400ms ease;
+  will-change: transform;
+}
+
+/* Ambient Movement Keyframes (20s - 40s slow physical drift) */
+@keyframes spotlightSway {
+  0% {
+    transform: rotate(-3deg) scaleY(0.95);
+    opacity: 0.65;
+  }
+  50% {
+    transform: rotate(2deg) scaleY(1.05);
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(-2deg) scaleY(1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes auroraDrift1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-60px, 40px, 0) scale(1.08) rotate(4deg);
+  }
+  100% {
+    transform: translate3d(40px, -30px, 0) scale(0.96) rotate(-3deg);
+  }
+}
+
+@keyframes auroraDrift2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(50px, -40px, 0) scale(1.06) rotate(-5deg);
+  }
+  100% {
+    transform: translate3d(-35px, 30px, 0) scale(0.98) rotate(3deg);
+  }
+}
+
+@keyframes glowNavyPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.38;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.22;
+  }
+}
+
+/* Responsive & Reduced Motion */
+@media (max-width: 768px) {
+  .ambient-cursor-light {
+    display: none;
+  }
+  .ambient-spotlight-beam {
+    width: 350px;
+    height: 600px;
+    filter: blur(35px);
+  }
+  .ambient-aurora-cyan,
+  .ambient-aurora-emerald {
+    filter: blur(55px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-spotlight-beam,
+  .ambient-aurora-cyan,
+  .ambient-aurora-emerald,
+  .ambient-glow-navy {
+    animation: none !important;
+  }
+}

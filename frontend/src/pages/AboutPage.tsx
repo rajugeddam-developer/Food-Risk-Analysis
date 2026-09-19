@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from '../router/Router';
 import { GlassCard } from '../components/common/GlassCard';
 import { Button } from '../components/common/Button';
+import { Icon } from '../components/common/Icon';
 import './info.css';
 
 export const AboutPage: React.FC = () => {
@@ -9,8 +10,13 @@ export const AboutPage: React.FC = () => {
     <div className="info-page">
       <div className="info-container">
         <div className="info-header">
-          <span className="info-badge">ABOUT OUR MISSION</span>
-          <h1 className="info-title">Empowering Food Awareness</h1>
+          <div className="info-badge">
+            <span className="info-badge-dot" />
+            <span>ABOUT OUR MISSION</span>
+          </div>
+          <h1 className="info-title">
+            Empowering Food <span className="text-gradient-cyan">Awareness</span>
+          </h1>
           <p className="info-subtitle">
             Demystifying chemical additives, deceptive portion sizes, and hidden sugars in everyday packaged food.
           </p>
@@ -29,24 +35,30 @@ export const AboutPage: React.FC = () => {
 
         {/* Pillars Grid */}
         <div className="about-pillars-grid">
-          <GlassCard variant="default" padding="medium" className="about-pillar-card">
-            <span className="pillar-icon" aria-hidden="true">🔬</span>
+          <GlassCard variant="elevated" padding="medium" className="about-pillar-card">
+            <div className="pillar-icon-wrap">
+              <Icon name="scale" size={26} color="#20c9ff" />
+            </div>
             <h3 className="pillar-title">Scientific Standards</h3>
             <p className="pillar-text">
               Our evaluation models reference public dietary thresholds established by the <strong>World Health Organization (WHO)</strong> and the <strong>Food Safety and Standards Authority of India (FSSAI)</strong>, alongside the NOVA Ultra-Processed Food classification framework.
             </p>
           </GlassCard>
 
-          <GlassCard variant="default" padding="medium" className="about-pillar-card">
-            <span className="pillar-icon" aria-hidden="true">🔒</span>
+          <GlassCard variant="elevated" padding="medium" className="about-pillar-card">
+            <div className="pillar-icon-wrap">
+              <Icon name="lock" size={26} color="#20c9ff" />
+            </div>
             <h3 className="pillar-title">Zero Data Exploitation</h3>
             <p className="pillar-text">
               We do not track your grocery habits or sell dietary profiles to advertisers. Food images and nutritional analyses are ephemeral—processed in volatile memory and never converted into permanent consumer dossiers.
             </p>
           </GlassCard>
 
-          <GlassCard variant="default" padding="medium" className="about-pillar-card">
-            <span className="pillar-icon" aria-hidden="true">📱</span>
+          <GlassCard variant="elevated" padding="medium" className="about-pillar-card">
+            <div className="pillar-icon-wrap">
+              <Icon name="sparkles" size={26} color="#20c9ff" />
+            </div>
             <h3 className="pillar-title">Mobile-First PWA</h3>
             <p className="pillar-text">
               Engineered as a lightweight Progressive Web App that works seamlessly in mobile browsers or as an installed app on iOS and Android without demanding unnecessary device permissions.
@@ -57,7 +69,9 @@ export const AboutPage: React.FC = () => {
         {/* Mandatory Non-Medical Disclaimer */}
         <GlassCard variant="subtle" padding="large" className="about-disclaimer-card">
           <div className="disclaimer-header-row">
-            <span className="disclaimer-icon" aria-hidden="true">⚖️</span>
+            <div className="disclaimer-icon-wrap">
+              <Icon name="alert-triangle" size={24} color="#fbbf24" />
+            </div>
             <div>
               <h3 className="disclaimer-heading">MANDATORY MEDICAL &amp; NUTRITIONAL DISCLAIMER</h3>
               <p className="disclaimer-copy">
@@ -73,8 +87,8 @@ export const AboutPage: React.FC = () => {
         {/* Action button */}
         <div className="info-bottom-cta">
           <Link to="/scan" className="info-cta-link">
-            <Button variant="primary" size="large">
-              EXPERIENCE THE SCANNER
+            <Button variant="primary" size="large" icon={<Icon name="zap" size={18} />}>
+              EXPERIENCE THE SCANNER →
             </Button>
           </Link>
         </div>

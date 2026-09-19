@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { GlassCard } from '../common/GlassCard';
 import { Button } from '../common/Button';
+import { Icon } from '../common/Icon';
 import { validateImageFile, formatFileSize } from '../../utils/imageValidation';
 import type { CapturedImage } from './scanTypes';
 
@@ -11,7 +12,7 @@ interface UploadCardProps {
   id: string;
   title: string;
   subtitle: string;
-  icon?: string;
+  icon?: React.ReactNode;
   selectedImage: CapturedImage | null;
   onImageSelected: (image: CapturedImage) => void;
   onImageRemoved: () => void;
@@ -22,7 +23,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
   id,
   title,
   subtitle,
-  icon = '📷',
+  icon,
   selectedImage,
   onImageSelected,
   onImageRemoved,
@@ -93,9 +94,9 @@ export const UploadCard: React.FC<UploadCardProps> = ({
     <GlassCard variant="elevated" padding="medium" className="upload-card">
       <div className="upload-card-header">
         <div className="upload-card-title-group">
-          <span className="upload-card-icon" aria-hidden="true">{icon}</span>
+          {icon && <div className="upload-card-icon-wrap" aria-hidden="true">{icon}</div>}
           <div>
-            <div className="upload-card-badge">
+            <div className={`upload-card-badge ${required ? 'upload-card-badge--required' : 'upload-card-badge--optional'}`}>
               <span>{required ? 'REQUIRED' : 'OPTIONAL'}</span>
             </div>
             <h3 className="upload-card-title">{title}</h3>
@@ -108,7 +109,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
       {/* Card Validation Error Alert */}
       {cardError && (
         <div className="upload-card-error" role="alert">
-          <span className="error-icon" aria-hidden="true">⚠️</span>
+          <Icon name="alert-triangle" size={18} className="error-icon" color="#f87171" />
           <span className="error-text">{cardError}</span>
           <button
             type="button"
@@ -116,7 +117,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
             onClick={() => setCardError(null)}
             aria-label="Dismiss error"
           >
-            ✕
+            <Icon name="close" size={14} />
           </button>
         </div>
       )}
@@ -146,8 +147,8 @@ export const UploadCard: React.FC<UploadCardProps> = ({
       {/* Validating indicator */}
       {isValidating && (
         <div className="upload-validating-indicator" aria-live="polite">
-          <span className="spinner-dots" aria-hidden="true">⏳</span>
-          <span>Verifying image format & quality...</span>
+          <div className="upload-spinner" />
+          <span>Verifying image format &amp; resolution...</span>
         </div>
       )}
 
@@ -161,7 +162,17 @@ export const UploadCard: React.FC<UploadCardProps> = ({
               className="upload-preview-image"
             />
             <div className="upload-preview-badge">
-              <span>{selectedImage.capturedVia === 'camera' ? '📷 Photo' : '📁 Upload'}</span>
+              {selectedImage.capturedVia === 'camera' ? (
+                <>
+                  <Icon name="camera" size={14} />
+                  <span>Photo</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="upload" size={14} />
+                  <span>Upload</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -186,7 +197,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
               variant="outline"
               size="small"
               onClick={() => cameraInputRef.current?.click()}
-              icon={<span aria-hidden="true">📷</span>}
+              icon={<Icon name="camera" size={15} />}
             >
               Retake
             </Button>
@@ -194,7 +205,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
               variant="outline"
               size="small"
               onClick={() => fileInputRef.current?.click()}
-              icon={<span aria-hidden="true">📁</span>}
+              icon={<Icon name="upload" size={15} />}
             >
               Replace
             </Button>
@@ -202,7 +213,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
               variant="danger"
               size="small"
               onClick={handleRemove}
-              icon={<span aria-hidden="true">🗑️</span>}
+              icon={<Icon name="trash" size={15} />}
             >
               Remove
             </Button>
@@ -216,7 +227,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
               size="medium"
               fullWidth
               onClick={() => cameraInputRef.current?.click()}
-              icon={<span aria-hidden="true">📸</span>}
+              icon={<Icon name="camera" size={18} />}
             >
               TAKE PHOTO
             </Button>
@@ -225,7 +236,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({
               size="medium"
               fullWidth
               onClick={() => fileInputRef.current?.click()}
-              icon={<span aria-hidden="true">📁</span>}
+              icon={<Icon name="upload" size={18} />}
             >
               UPLOAD IMAGE
             </Button>

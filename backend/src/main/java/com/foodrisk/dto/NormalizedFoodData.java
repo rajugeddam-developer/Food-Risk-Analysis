@@ -11,9 +11,22 @@ import java.util.List;
  */
 public record NormalizedFoodData(
         String productName,
+        Boolean productMatchVerified,
+        String mismatchReason,
         String servingSize,
         Double servingSizeGrams,
         List<NormalizedIngredient> ingredients,
         NormalizedNutrition nutrition,
         List<String> uncertainties
-) {}
+) {
+    public NormalizedFoodData(
+            String productName,
+            String servingSize,
+            Double servingSizeGrams,
+            List<NormalizedIngredient> ingredients,
+            NormalizedNutrition nutrition,
+            List<String> uncertainties
+    ) {
+        this(productName, Boolean.TRUE, null, servingSize, servingSizeGrams, ingredients, nutrition, uncertainties);
+    }
+}

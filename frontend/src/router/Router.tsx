@@ -81,7 +81,8 @@ interface RouteProps {
 
 export const Route: React.FC<RouteProps> = ({ path, element }) => {
   const { currentPath } = useRouter();
-  if (currentPath === path) {
+  const basePath = currentPath.split('?')[0].split('#')[0];
+  if (basePath === path) {
     return <>{element}</>;
   }
   return null;

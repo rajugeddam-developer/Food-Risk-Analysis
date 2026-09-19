@@ -74,7 +74,7 @@ public class AnalysisSessionService {
      */
     @Transactional
     public FoodAnalysisSession getActiveSession(UUID sessionId) {
-        FoodAnalysisSession session = sessionRepository.findById(sessionId)
+        FoodAnalysisSession session = sessionRepository.findByIdWithUser(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException("Analysis session not found: " + sessionId));
 
         if (session.isExpired()) {

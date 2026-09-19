@@ -7,6 +7,7 @@ import { NormalizedFoodModal } from '../components/scan/NormalizedFoodModal';
 import { AnalysisResultModal } from '../components/scan/AnalysisResultModal';
 import { Button } from '../components/common/Button';
 import { GlassCard } from '../components/common/GlassCard';
+import { Icon } from '../components/common/Icon';
 import type { CapturedImage } from '../components/scan/scanTypes';
 import {
   createAnalysisSession,
@@ -291,8 +292,13 @@ export const ScanPage: React.FC = () => {
       <div className="scan-container">
         {/* Page Header */}
         <div className="scan-header">
-          <span className="scan-badge">STEP 1: CAPTURE PACKAGING LABELS</span>
-          <h1 className="scan-title">Scan Your Food</h1>
+          <div className="scan-badge">
+            <span className="scan-badge-dot" />
+            <span>STEP 1 | CAPTURE PACKAGING LABELS</span>
+          </div>
+          <h1 className="scan-title">
+            Scan Your <span className="text-gradient-cyan">Food</span>
+          </h1>
           <p className="scan-subtitle">
             Upload clear photos of food packaging to analyze health risks, additives, and nutrition facts against WHO and FSSAI standards.
           </p>
@@ -301,34 +307,61 @@ export const ScanPage: React.FC = () => {
         {/* Validation Error Alert */}
         {errorMessage && (
           <div className="scan-validation-alert" role="alert">
-            <span aria-hidden="true">⚠️</span>
+            <Icon name="alert-triangle" size={18} color="#f87171" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        {/* Dual Upload Cards: Ingredients & Nutrition */}
-        <div className="scan-cards-grid">
-          {/* Card 1: Ingredients */}
-          <UploadCard
-            id="ingredients-card"
-            title="Ingredients Label"
-            subtitle="Capture the full ingredients statement, chemical additives, and allergen declarations."
-            icon="🏷️"
-            selectedImage={ingredientsImage}
-            onImageSelected={setIngredientsImage}
-            onImageRemoved={() => setIngredientsImage(null)}
-          />
+        {/* Dual Upload Cards + Scanner Preview */}
+        <div className="scan-cockpit-layout">
+          <div className="scan-cards-grid">
+            {/* Card 1: Ingredients */}
+            <UploadCard
+              id="ingredients-card"
+              title="Ingredients Label"
+              subtitle="Capture the full ingredients statement, chemical additives, and allergen declarations."
+              icon={<Icon name="file-text" size={22} color="#20c9ff" />}
+              selectedImage={ingredientsImage}
+              onImageSelected={setIngredientsImage}
+              onImageRemoved={() => setIngredientsImage(null)}
+            />
 
-          {/* Card 2: Nutrition Table */}
-          <UploadCard
-            id="nutrition-card"
-            title="Nutrition Table"
-            subtitle="Capture the nutrition facts panel (calories, sodium, sugars, and fats per serving/100g)."
-            icon="📊"
-            selectedImage={nutritionImage}
-            onImageSelected={setNutritionImage}
-            onImageRemoved={() => setNutritionImage(null)}
-          />
+            {/* Card 2: Nutrition Table */}
+            <UploadCard
+              id="nutrition-card"
+              title="Nutrition Table"
+              subtitle="Capture the nutrition facts panel (calories, sodium, sugars, and fats per serving/100g)."
+              icon={<Icon name="bar-chart" size={22} color="#20c9ff" />}
+              selectedImage={nutritionImage}
+              onImageSelected={setNutritionImage}
+              onImageRemoved={() => setNutritionImage(null)}
+            />
+          </div>
+
+          {/* Realism Desktop Viewfinder Mockup */}
+          <div className="scan-mockup-panel">
+            <div className="scan-mockup-frame">
+              <img
+                src="/images/scan-packaging-preview.webp"
+                alt="Optical package scanner mockup"
+                className="scan-mockup-img"
+              />
+              <div className="scan-mockup-reticle">
+                <div className="reticle-corner reticle-corner--tl" />
+                <div className="reticle-corner reticle-corner--tr" />
+                <div className="reticle-corner reticle-corner--bl" />
+                <div className="reticle-corner reticle-corner--br" />
+                <div className="scan-laser-line" />
+              </div>
+              <div className="scan-mockup-hud">
+                <div className="hud-pill">
+                  <span className="hud-dot" />
+                  <span>OCR ENGINE ACTIVE</span>
+                </div>
+                <span className="hud-metric">AUTO-MACRO: ON</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Primary Action Button (Unified Pipeline) */}
@@ -339,13 +372,13 @@ export const ScanPage: React.FC = () => {
             fullWidth
             disabled={!hasAtLeastOneImage || isOrchestrating || isOcrLoading}
             onClick={handleStartUnifiedAnalysis}
-            icon={<span aria-hidden="true">⚡</span>}
+            icon={<Icon name="zap" size={20} />}
           >
             {isOrchestrating
               ? 'ANALYZING FOOD PRODUCT...'
               : hasAtLeastOneImage
-              ? 'SCAN & ANALYZE FOOD'
-              : 'CAPTURE AT LEAST ONE IMAGE'}
+              ? 'SCAN & ANALYZE FOOD →'
+              : 'CAPTURE AT LEAST ONE IMAGE →'}
           </Button>
 
           {!hasAtLeastOneImage && (
@@ -355,30 +388,23 @@ export const ScanPage: React.FC = () => {
           )}
 
           {/* Step-by-Step Inspection Toggle for Developers / Reviewers */}
-          <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
+          <div className="scan-dev-tools">
             <button
               type="button"
               onClick={() => setIsStepByStepMode(!isStepByStepMode)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--color-text-muted, #94a3b8)',
-                fontSize: '0.8125rem',
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}
+              className="scan-dev-toggle-btn"
             >
               {isStepByStepMode ? '▲ Hide Advanced Inspection Mode' : '🛠️ Advanced: Inspect Step-by-Step Modals (M5–M8)'}
             </button>
 
             {isStepByStepMode && (
-              <div style={{ marginTop: '0.5rem' }}>
+              <div className="scan-dev-panel">
                 <Button
                   variant="outline"
                   size="small"
                   disabled={!hasAtLeastOneImage || isOcrLoading}
                   onClick={handleStartStepByStepInspection}
-                  icon={<span>🔍</span>}
+                  icon={<Icon name="sparkles" size={15} />}
                 >
                   {isOcrLoading ? 'Extracting OCR...' : 'Run Step-by-Step Modal Review'}
                 </Button>
@@ -386,14 +412,20 @@ export const ScanPage: React.FC = () => {
             )}
           </div>
 
-          <p className="scan-privacy-reminder">
-            🛡️ <strong>Privacy Protection:</strong> Uploaded images are processed strictly in temporary memory and permanently destroyed immediately following analysis.
-          </p>
+          <div className="scan-privacy-reminder">
+            <Icon name="shield" size={16} color="#20c9ff" />
+            <span>
+              <strong>Privacy Protection:</strong> Uploaded images are processed strictly in temporary memory and permanently destroyed immediately following analysis.
+            </span>
+          </div>
         </div>
 
         {/* Photography Tips Card */}
         <GlassCard variant="subtle" padding="medium" className="scan-tips-card">
-          <h4 className="tips-card-title">Photography Tips for Accurate Scanning</h4>
+          <div className="tips-card-header">
+            <Icon name="info" size={18} color="#20c9ff" />
+            <h4 className="tips-card-title">Photography Tips for Accurate Scanning</h4>
+          </div>
           <ul className="tips-list">
             <li>Ensure bright, even lighting without heavy glare on plastic wraps.</li>
             <li>Flatten curled packaging to keep all text lines in sharp focus.</li>

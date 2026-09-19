@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -42,12 +43,13 @@ class AnalysisControllerTest {
     private FoodAnalysisSessionRepository sessionRepository;
 
     private byte[] createSamplePng() throws IOException {
-        BufferedImage img = new BufferedImage(120, 40, BufferedImage.TYPE_INT_RGB);
+        BufferedImage img = new BufferedImage(400, 250, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setColor(Color.WHITE);
-        g.fillRect(0, 0, 120, 40);
+        g.fillRect(0, 0, 400, 250);
         g.setColor(Color.BLACK);
-        g.drawString("SALT SUGAR", 10, 25);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString("INGREDIENTS: SALT SUGAR WATER", 20, 60);
         g.dispose();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

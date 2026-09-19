@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '../../router/Router';
+import { Icon } from './Icon';
 
 export const Footer: React.FC = () => {
   return (
@@ -18,9 +19,13 @@ export const Footer: React.FC = () => {
 
         {/* Footer Navigation Columns */}
         <div className="footer-columns">
+          {/* Brand Column */}
           <div className="footer-col-brand">
             <div className="footer-brand-title">
-              Food Risk <span className="text-highlight">Analysis</span>
+              <span className="footer-brand-badge">
+                <Icon name="clock" size={16} color="#20C7FF" />
+              </span>
+              <span>Food Risk <span className="text-cyan">Analysis</span></span>
             </div>
             <p className="footer-tagline">
               Empowering conscious dietary choices through automated food label analysis.
@@ -28,6 +33,22 @@ export const Footer: React.FC = () => {
             <div className="footer-meta-pill">
               <span className="meta-dot" />
               <span>Milestone M1: 3D PWA UI</span>
+            </div>
+
+            {/* Social Icons */}
+            <div className="footer-social-row">
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="GitHub">
+                <Icon name="github" size={16} />
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="LinkedIn">
+                <Icon name="linkedin" size={16} />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="Twitter">
+                <Icon name="twitter" size={16} />
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="YouTube">
+                <Icon name="youtube" size={16} />
+              </a>
             </div>
           </div>
 

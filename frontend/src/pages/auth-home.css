@@ -1,0 +1,437 @@
+/* ==========================================================================
+   Authenticated Home / Consumer Cockpit Realism Styles
+   ========================================================================== */
+
+.auth-home {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  padding: 2.5rem 1.5rem 6rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Header & Welcome Bar */
+.auth-home-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-bottom: 1px solid rgba(180, 205, 220, 0.12);
+  padding-bottom: 2rem;
+}
+
+.auth-welcome-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .auth-welcome-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.auth-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(32, 199, 255, 0.08);
+  border: 1px solid rgba(32, 199, 255, 0.25);
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-cyan-bright, #38D7FF);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+  width: fit-content;
+}
+
+.auth-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-cyan, #20C7FF);
+  box-shadow: 0 0 10px rgba(32, 199, 255, 0.8);
+}
+
+.auth-welcome-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #F5F7FA);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .auth-welcome-title {
+    font-size: 2.75rem;
+  }
+}
+
+.auth-welcome-name {
+  background: linear-gradient(135deg, #20C7FF 0%, #10C98B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  filter: drop-shadow(0 0 20px rgba(32, 199, 255, 0.3));
+}
+
+.auth-welcome-sub {
+  font-size: 1.05rem;
+  color: var(--color-text-secondary, #94A3B8);
+  margin: 0.5rem 0 0;
+  max-width: 650px;
+  line-height: 1.5;
+}
+
+.auth-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.auth-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 24, 39, 0.72);
+  border: 1px solid rgba(180, 205, 220, 0.2);
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #F5F7FA);
+  box-shadow: inset 0 1px 0 rgba(220, 235, 245, 0.2);
+}
+
+.auth-status-chip--jwt {
+  border-color: rgba(32, 199, 255, 0.3);
+  color: #38D7FF;
+}
+
+.auth-status-chip--privacy {
+  border-color: rgba(16, 201, 139, 0.3);
+  color: #10C98B;
+}
+
+/* Cockpit Hero Launcher Card */
+.auth-cockpit-card {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 10% 20%, rgba(32, 199, 255, 0.12) 0%, rgba(10, 17, 26, 0.85) 60%), #101827;
+  border: 1px solid rgba(180, 205, 220, 0.28);
+  border-radius: var(--radius-xl, 24px);
+  box-shadow: 
+    inset 0 1px 0 rgba(220, 235, 245, 0.3),
+    0 16px 40px rgba(0, 0, 0, 0.5);
+  padding: 2.5rem;
+}
+
+.auth-cockpit-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (min-width: 992px) {
+  .auth-cockpit-grid {
+    grid-template-columns: 1.3fr 0.7fr;
+  }
+}
+
+.auth-cockpit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cockpit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #20C7FF;
+  text-transform: uppercase;
+}
+
+.cockpit-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #F5F7FA;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.cockpit-desc {
+  font-size: 1rem;
+  color: #94A3B8;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 580px;
+}
+
+.cockpit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.cockpit-visual-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(7, 12, 19, 0.6);
+  border: 1px solid rgba(180, 205, 220, 0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.cockpit-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: rgba(16, 25, 39, 0.6);
+  border: 1px solid rgba(180, 205, 220, 0.1);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.cockpit-status-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #F5F7FA;
+  font-weight: 500;
+}
+
+.cockpit-status-val {
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.status-active {
+  background: rgba(16, 201, 139, 0.15);
+  color: #10C98B;
+  border: 1px solid rgba(16, 201, 139, 0.3);
+}
+
+.status-ready {
+  background: rgba(32, 199, 255, 0.15);
+  color: #38D7FF;
+  border: 1px solid rgba(32, 199, 255, 0.3);
+}
+
+/* Dietary Risk Standards Section */
+.auth-standards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.section-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.section-eyebrow-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #20C7FF;
+  text-transform: uppercase;
+}
+
+.section-main-heading {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #F5F7FA;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.section-subtext {
+  font-size: 0.95rem;
+  color: #94A3B8;
+  margin: 0;
+}
+
+.standards-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .standards-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.standard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: 100%;
+}
+
+.standard-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.standard-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(32, 199, 255, 0.1);
+  border: 1px solid rgba(32, 199, 255, 0.25);
+  color: #20C7FF;
+}
+
+.standard-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #F5F7FA;
+  margin: 0;
+}
+
+.standard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-size: 0.875rem;
+  color: #94A3B8;
+  line-height: 1.5;
+}
+
+.standard-list li strong {
+  color: #F5F7FA;
+  font-weight: 600;
+}
+
+/* Additives Watchlist Grid */
+.additives-watchlist-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.additives-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .additives-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .additives-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.additive-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.additive-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(32, 199, 255, 0.35);
+}
+
+.additive-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.additive-code {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #20C7FF;
+  letter-spacing: 0.05em;
+}
+
+.additive-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #F5F7FA;
+  margin: 0;
+}
+
+.additive-desc {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Quick Tools Footer Banner */
+.auth-bottom-banner {
+  background: rgba(16, 24, 39, 0.7);
+  border: 1px solid rgba(180, 205, 220, 0.2);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .auth-bottom-banner {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+
+.auth-bottom-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auth-bottom-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #F5F7FA;
+  margin: 0;
+}
+
+.auth-bottom-sub {
+  font-size: 0.95rem;
+  color: #94A3B8;
+  margin: 0;
+}

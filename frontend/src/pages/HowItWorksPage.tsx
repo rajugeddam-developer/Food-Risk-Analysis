@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from '../router/Router';
 import { GlassCard } from '../components/common/GlassCard';
 import { Button } from '../components/common/Button';
+import { Icon } from '../components/common/Icon';
 import './info.css';
 
 export const HowItWorksPage: React.FC = () => {
@@ -9,8 +10,13 @@ export const HowItWorksPage: React.FC = () => {
     <div className="info-page">
       <div className="info-container">
         <div className="info-header">
-          <span className="info-badge">PIPELINE ARCHITECTURE</span>
-          <h1 className="info-title">How Food Risk Analysis Works</h1>
+          <div className="info-badge">
+            <span className="info-badge-dot" />
+            <span>PIPELINE ARCHITECTURE</span>
+          </div>
+          <h1 className="info-title">
+            How Food Risk Analysis <span className="text-gradient-cyan">Works</span>
+          </h1>
           <p className="info-subtitle">
             A transparent overview of how our mobile PWA transforms complex packaging fine-print into clear dietary intelligence.
           </p>
@@ -19,7 +25,7 @@ export const HowItWorksPage: React.FC = () => {
         {/* 4 Steps In-Depth */}
         <div className="info-steps-flow">
           {/* Step 1 */}
-          <GlassCard variant="default" padding="large" className="info-step-card">
+          <GlassCard variant="elevated" padding="large" className="info-step-card">
             <div className="step-card-num-badge">01</div>
             <div className="step-card-body">
               <span className="step-tag">INPUT STAGE</span>
@@ -35,7 +41,7 @@ export const HowItWorksPage: React.FC = () => {
           </GlassCard>
 
           {/* Step 2 */}
-          <GlassCard variant="default" padding="large" className="info-step-card">
+          <GlassCard variant="elevated" padding="large" className="info-step-card">
             <div className="step-card-num-badge">02</div>
             <div className="step-card-body">
               <span className="step-tag">DIGITIZATION STAGE (M5)</span>
@@ -52,7 +58,7 @@ export const HowItWorksPage: React.FC = () => {
           </GlassCard>
 
           {/* Step 3 */}
-          <GlassCard variant="default" padding="large" className="info-step-card">
+          <GlassCard variant="elevated" padding="large" className="info-step-card">
             <div className="step-card-num-badge">03</div>
             <div className="step-card-body">
               <span className="step-tag">INTELLIGENCE STAGE (M6–M10)</span>
@@ -70,7 +76,7 @@ export const HowItWorksPage: React.FC = () => {
           </GlassCard>
 
           {/* Step 4 */}
-          <GlassCard variant="default" padding="large" className="info-step-card">
+          <GlassCard variant="elevated" padding="large" className="info-step-card">
             <div className="step-card-num-badge">04</div>
             <div className="step-card-body">
               <span className="step-tag">SYNTHESIS &amp; GUIDANCE</span>
@@ -90,7 +96,9 @@ export const HowItWorksPage: React.FC = () => {
         {/* Data Privacy Pillar Callout */}
         <GlassCard variant="elevated" padding="large" className="privacy-callout-card">
           <div className="privacy-callout-header">
-            <span className="privacy-shield-icon" aria-hidden="true">🛡️</span>
+            <div className="privacy-shield-wrap">
+              <Icon name="shield" size={24} color="#20c9ff" />
+            </div>
             <div>
               <h3 className="privacy-callout-title">Privacy-By-Design: Ephemeral Food Processing</h3>
               <p className="privacy-callout-sub">
@@ -106,8 +114,8 @@ export const HowItWorksPage: React.FC = () => {
         {/* CTA */}
         <div className="info-bottom-cta">
           <Link to="/scan" className="info-cta-link">
-            <Button variant="primary" size="large">
-              TRY SCANNING A PRODUCT NOW
+            <Button variant="primary" size="large" icon={<Icon name="zap" size={18} />}>
+              TRY SCANNING A PRODUCT NOW →
             </Button>
           </Link>
         </div>

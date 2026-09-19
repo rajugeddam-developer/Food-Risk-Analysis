@@ -1,5 +1,6 @@
 package com.foodrisk.service;
 
+import com.foodrisk.dto.NormalizedIngredient;
 import com.foodrisk.dto.NormalizeRequest;
 import com.foodrisk.dto.NormalizedFoodData;
 import com.foodrisk.dto.NormalizedNutrition;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service orchestrating AI normalization of raw OCR text and validating untrusted model output.
@@ -37,15 +40,28 @@ public class FoodNormalizationService {
     }
 
     public NormalizedFoodData normalize(UUID sessionId, NormalizeRequest request) {
-        if (request == null || !request.hasContent()) {
-            throw new IllegalArgumentException("At least one OCR text section (ingredients or nutrition) must be provided for normalization.");
+        return normalize(sessionId, request, List.of());
+    }
+
+    public NormalizedFoodData normalize(UUID sessionId, NormalizeRequest request, List<GeminiClient.ImagePayload> images) {
+        if (request == null) {
+            throw new IllegalArgumentException("NormalizeRequest cannot be null");
         }
 
         // Validate session is active and not expired
         FoodAnalysisSession session = sessionService.getActiveSession(sessionId);
 
-        log.info("Starting AI normalization for session {}", sessionId);
-        NormalizedFoodData rawNormalized = geminiClient.normalize(request.ingredientText(), request.nutritionText());
+        NormalizedFoodData rawNormalized;
+        try {
+            log.info("Starting AI normalization for session {} (images: {})", sessionId, (images != null ? images.size() : 0));
+            rawNormalized = (images != null && !images.isEmpty())
+                    ? geminiClient.normalizeWithImages(request.ingredientText(), request.nutritionText(), images)
+                    : geminiClient.normalize(request.ingredientText(), request.nutritionText());
+        } catch (Exception ex) {
+            log.warn("Gemini AI normalization failed for session {}: {}. Activating resilient deterministic fallback parser.",
+                    sessionId, ex.getMessage());
+            rawNormalized = parseDeterministicFallback(request.ingredientText(), request.nutritionText());
+        }
 
         // Validate untrusted model output
         NormalizedFoodData validatedData = validateNormalizedData(rawNormalized);
@@ -103,6 +119,8 @@ public class FoodNormalizationService {
 
         return new NormalizedFoodData(
                 data.productName(),
+                data.productMatchVerified(),
+                data.mismatchReason(),
                 data.servingSize(),
                 data.servingSizeGrams(),
                 data.ingredients() != null ? data.ingredients() : List.of(),
@@ -115,5 +133,115 @@ public class FoodNormalizationService {
         if (value != null && value < 0) {
             throw new NormalizationException("AI_INVALID_NUTRITION", "Invalid negative value for nutrient " + nutrientName + ": " + value);
         }
+    }
+
+    private NormalizedFoodData parseDeterministicFallback(String ingredientText, String nutritionText) {
+        List<NormalizedIngredient> ingredients = new ArrayList<>();
+        List<String> uncertainties = new ArrayList<>();
+        uncertainties.add("Normalized using deterministic rule-based parser fallback.");
+
+        if (ingredientText != null && !ingredientText.isBlank()) {
+            String cleaned = ingredientText
+                    .replaceAll("(?i)^.*ingredients[:\\s]*", "")
+                    .replaceAll("[()\\[\\]{}]", " ")
+                    .trim();
+
+            String[] rawTokens = cleaned.split("[,;•\n\r]+");
+            Pattern additivePattern = Pattern.compile("(?i)(?:INS|E)[\s-]*([0-9]{3,4}[a-z]?)");
+
+            for (String token : rawTokens) {
+                String trimmed = token.trim();
+                if (trimmed.length() >= 2 && !trimmed.matches("(?i)^[0-9%\\s]+$")) {
+                    Matcher m = additivePattern.matcher(trimmed);
+                    boolean isAdditive = m.find();
+                    String additiveCode = isAdditive ? "INS " + m.group(1).toUpperCase() : null;
+
+                    ingredients.add(new NormalizedIngredient(
+                            capitalizeWords(trimmed),
+                            trimmed,
+                            isAdditive,
+                            additiveCode,
+                            false
+                    ));
+                }
+            }
+        }
+
+        NormalizedNutrition nutrition = null;
+        if (nutritionText != null && !nutritionText.isBlank()) {
+            Double energy = extractNutrient(nutritionText, "(?i)(?:energy|calories|kcal)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double protein = extractNutrient(nutritionText, "(?i)protein[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double carbs = extractNutrient(nutritionText, "(?i)(?:carbohydrate|carbs)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double sugars = extractNutrient(nutritionText, "(?i)(?:total\\s+sugars?|sugars?)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double addedSugars = extractNutrient(nutritionText, "(?i)added\\s+sugars?[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double totalFat = extractNutrient(nutritionText, "(?i)(?:total\\s+fat|fat)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double satFat = extractNutrient(nutritionText, "(?i)saturated\\s+fat[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double transFat = extractNutrient(nutritionText, "(?i)trans\\s+fat[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            Double fiber = extractNutrient(nutritionText, "(?i)(?:dietary\\s+fiber|fiber)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+            
+            Double sodium = extractNutrient(nutritionText, "(?i)sodium[:\\s]*([0-9]+(?:\\.[0-9]+)?)\\s*mg");
+            if (sodium == null) {
+                Double sodiumG = extractNutrient(nutritionText, "(?i)sodium[:\\s]*([0-9]+(?:\\.[0-9]+)?)\\s*g");
+                if (sodiumG != null) {
+                    sodium = sodiumG * 1000.0;
+                }
+            }
+            if (sodium == null) {
+                Double saltG = extractNutrient(nutritionText, "(?i)salt[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+                if (saltG != null) {
+                    sodium = saltG * 400.0; // standard estimation of sodium in table salt
+                }
+            }
+
+            nutrition = new NormalizedNutrition(
+                    "per 100g",
+                    energy,
+                    protein,
+                    carbs,
+                    sugars,
+                    addedSugars,
+                    totalFat,
+                    satFat,
+                    transFat,
+                    sodium,
+                    fiber,
+                    List.of()
+            );
+        }
+
+        Double servingGrams = extractNutrient(nutritionText != null ? nutritionText : "", "(?i)serving\\s*size[:\\s]*([0-9]+(?:\\.[0-9]+)?)\\s*g");
+        String servingSize = servingGrams != null ? servingGrams + "g" : null;
+
+        return new NormalizedFoodData(
+                "Packaged Food Product",
+                servingSize,
+                servingGrams,
+                ingredients,
+                nutrition,
+                uncertainties
+        );
+    }
+
+    private Double extractNutrient(String text, String regex) {
+        Matcher m = Pattern.compile(regex).matcher(text);
+        if (m.find()) {
+            try {
+                return Double.parseDouble(m.group(1));
+            } catch (NumberFormatException ignored) {}
+        }
+        return null;
+    }
+
+    private String capitalizeWords(String input) {
+        String[] words = input.toLowerCase().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (!w.isBlank()) {
+                sb.append(Character.toUpperCase(w.charAt(0)))
+                  .append(w.substring(1))
+                  .append(" ");
+            }
+        }
+        return sb.toString().trim();
     }
 }

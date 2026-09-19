@@ -16,6 +16,7 @@ import com.foodrisk.exception.ImageSizeLimitExceededException;
 import com.foodrisk.exception.InvalidImageException;
 import com.foodrisk.exception.NormalizationException;
 import com.foodrisk.exception.OcrProcessingException;
+import com.foodrisk.exception.ProductMismatchException;
 import com.foodrisk.exception.SessionExpiredException;
 import com.foodrisk.exception.SessionNotFoundException;
 import com.foodrisk.metrics.AnalysisMetrics;
@@ -39,6 +40,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -303,6 +306,12 @@ public class AnalysisOrchestratorService {
         } catch (Exception e) {
             log.error("Sync analysis pipeline failed for session {}: {}", sessionId, e.getMessage(), e);
             handlePipelineFailure(sessionId, sanitizeErrorMessage(e));
+            if (e instanceof com.foodrisk.exception.ProductMismatchException pme) {
+                throw pme;
+            }
+            if (e instanceof com.foodrisk.exception.InvalidImageException iie) {
+                throw iie;
+            }
             throw new RuntimeException(sanitizeErrorMessage(e), e);
         }
     }
@@ -355,11 +364,20 @@ public class AnalysisOrchestratorService {
             throw new InvalidImageException("At least one packaging label image (ingredients or nutrition) must be provided.");
         }
 
+        // Single-image dual scan: If only 1 image was uploaded, examine it for both ingredients and nutrition
+        MultipartFile effectiveIngImage = ingredientImage;
+        MultipartFile effectiveNutImage = nutritionImage;
+        if (hasIng && !hasNut) {
+            effectiveNutImage = ingredientImage;
+        } else if (hasNut && !hasIng) {
+            effectiveIngImage = nutritionImage;
+        }
+
         // 2. OCR processing
         updateStage(sessionId, "OCR_PROCESSING");
         log.info("Session {}: Starting OCR text extraction", sessionId);
         Instant ocrStart = Instant.now();
-        OcrAnalysisResponse ocrResponse = ocrService.processOcr(sessionId, ingredientImage, nutritionImage);
+        OcrAnalysisResponse ocrResponse = ocrService.processOcr(sessionId, effectiveIngImage, effectiveNutImage);
         if (metrics != null) {
             metrics.recordOcrDuration(Duration.between(ocrStart, Instant.now()));
         }
@@ -393,18 +411,47 @@ public class AnalysisOrchestratorService {
         log.info("Session {}: OCR text sufficiency verified (ingredientsUsable={}, nutritionUsable={})",
                 sessionId, sufficiency.ingredientsUsable(), sufficiency.nutritionUsable());
 
-        // 4. AI normalization (Gemini is strictly restricted to text normalization and entity extraction)
+        // 4. AI normalization (Gemini Multimodal Vision + structured entity extraction)
         updateStage(sessionId, "AI_NORMALIZATION");
-        log.info("Session {}: Starting AI text normalization", sessionId);
+        log.info("Session {}: Starting AI text normalization with Gemini Vision", sessionId);
         NormalizeRequest normRequest = new NormalizeRequest(
                 ingredientText,
                 nutritionText
         );
+
+        List<com.foodrisk.gemini.GeminiClient.ImagePayload> imagePayloads = new ArrayList<>();
+        try {
+            if (ingredientImage != null && !ingredientImage.isEmpty()) {
+                imagePayloads.add(new com.foodrisk.gemini.GeminiClient.ImagePayload(
+                        ingredientImage.getBytes(),
+                        ingredientImage.getContentType()
+                ));
+            }
+            if (nutritionImage != null && !nutritionImage.isEmpty() && nutritionImage != ingredientImage) {
+                imagePayloads.add(new com.foodrisk.gemini.GeminiClient.ImagePayload(
+                        nutritionImage.getBytes(),
+                        nutritionImage.getContentType()
+                ));
+            }
+        } catch (Exception ex) {
+            log.warn("Could not buffer packaging image bytes for Gemini Vision: {}", ex.getMessage());
+        }
+
         Instant geminiStart = Instant.now();
-        NormalizedFoodData normalizedData = normalizationService.normalize(sessionId, normRequest);
+        NormalizedFoodData normalizedData = normalizationService.normalize(sessionId, normRequest, imagePayloads);
         if (metrics != null) {
             metrics.recordGeminiDuration(Duration.between(geminiStart, Instant.now()));
         }
+
+        // Strict Same-Product Consistency Check
+        if (Boolean.FALSE.equals(normalizedData.productMatchVerified())) {
+            String mismatchMsg = normalizedData.mismatchReason() != null && !normalizedData.mismatchReason().isBlank()
+                    ? normalizedData.mismatchReason()
+                    : "Product Mismatch Detected: The ingredients label and nutrition facts table appear to belong to two different products. Please upload packaging photos from the same food product.";
+            log.warn("Session {}: Product mismatch detected: {}", sessionId, mismatchMsg);
+            throw new com.foodrisk.exception.ProductMismatchException(mismatchMsg, normalizedData.mismatchReason());
+        }
+
         contextStore.storeNormalizedFoodData(sessionId, normalizedData);
 
         // 5. Duplicate product fingerprint cache check
@@ -542,6 +589,12 @@ public class AnalysisOrchestratorService {
         }
         Throwable root = ex.getCause() != null ? ex.getCause() : ex;
 
+        if (root instanceof ProductMismatchException mismatchEx) {
+            return mismatchEx.getMessage();
+        }
+        if (ex instanceof ProductMismatchException mismatchEx) {
+            return mismatchEx.getMessage();
+        }
         if (root instanceof OcrProcessingException ocrEx) {
             return ocrEx.getMessage();
         }
@@ -567,7 +620,12 @@ public class AnalysisOrchestratorService {
         if (rawMessage == null || rawMessage.isBlank()) {
             return "An unexpected error occurred during food label analysis. Please try again.";
         }
-        // Preserve specific user retake guidance
+        // Preserve specific user retake guidance and mismatch alerts
+        if (rawMessage.contains("Product Mismatch") || rawMessage.contains("mismatch")
+                || rawMessage.contains("different product") || rawMessage.contains("same product")
+                || rawMessage.contains("same food product")) {
+            return rawMessage;
+        }
         if (rawMessage.contains("couldn't read") || rawMessage.contains("Please retake")
                 || rawMessage.contains("capture the") || rawMessage.contains("blurry")
                 || rawMessage.contains("focus") || rawMessage.contains("contrast")

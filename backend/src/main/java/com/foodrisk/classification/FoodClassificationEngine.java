@@ -193,12 +193,16 @@ public class FoodClassificationEngine {
                     ? ClassificationCertainty.HIGH
                     : ClassificationCertainty.MEDIUM;
 
+            String reason = (foodData.productName() != null && !foodData.productName().isBlank())
+                    ? "Identified as " + foodData.productName().trim() + ". Ingredients and nutrition information are consistent with packaged human food."
+                    : "Product label contains ingredients and nutrition information consistent with a packaged human food product.";
+
             return new FoodClassificationResult(
                     FoodCategory.HUMAN_FOOD,
                     certainty,
                     null,
                     ClassificationReasonCode.EXPLICIT_HUMAN_FOOD_MARKER,
-                    "Product label contains ingredients and nutrition information consistent with a packaged human food product.",
+                    reason,
                     evidence,
                     warnings
             );
@@ -206,12 +210,16 @@ public class FoodClassificationEngine {
 
         // If only ingredients list without nutrition or human food keyword
         if (hasIngredientsList && !hasNutritionTable) {
+            String reason = (foodData.productName() != null && !foodData.productName().isBlank())
+                    ? "Identified as " + foodData.productName().trim() + ". Ingredient list present without full nutritional panel."
+                    : "Ingredient list present without nutritional panel; probable human food item.";
+
             return new FoodClassificationResult(
                     FoodCategory.HUMAN_FOOD,
                     ClassificationCertainty.LOW,
                     null,
                     ClassificationReasonCode.EXPLICIT_HUMAN_FOOD_MARKER,
-                    "Ingredient list present without nutritional panel; probable human food item.",
+                    reason,
                     evidence,
                     warnings
             );

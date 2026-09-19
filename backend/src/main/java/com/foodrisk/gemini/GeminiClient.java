@@ -73,24 +73,80 @@ public class GeminiClient {
                 .build();
     }
 
+    private static final List<String> CANDIDATE_MODELS = List.of(
+            "gemini-3.5-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.5-flash"
+    );
+
     public String buildGenerateContentUrl() {
+        return buildGenerateContentUrl(properties.getModel());
+    }
+
+    public String buildGenerateContentUrl(String modelName) {
+        String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName.trim() : "gemini-3.5-flash-lite";
         return "%s/%s:generateContent".formatted(
                 GEMINI_API_BASE,
-                properties.getModel()
+                effectiveModel
         );
     }
 
+    public List<String> getModelsToTry() {
+        List<String> list = new java.util.ArrayList<>();
+        if (properties.getModel() != null && !properties.getModel().isBlank()) {
+            list.add(properties.getModel().trim());
+        }
+        for (String fallback : CANDIDATE_MODELS) {
+            if (!list.contains(fallback)) {
+                list.add(fallback);
+            }
+        }
+        return list;
+    }
+
+    public record ImagePayload(byte[] bytes, String contentType) {}
+
     public NormalizedFoodData normalize(String ingredientText, String nutritionText) {
+        return normalizeWithImages(ingredientText, nutritionText, java.util.List.of());
+    }
+
+    public NormalizedFoodData normalizeWithImages(String ingredientText, String nutritionText, java.util.List<ImagePayload> images) {
         validateConfiguration();
 
-        String prompt = promptBuilder.buildPrompt(ingredientText, nutritionText);
-        String requestUrl = buildGenerateContentUrl();
+        boolean hasImages = images != null && !images.isEmpty();
+        String prompt = promptBuilder.buildPrompt(ingredientText, nutritionText, hasImages);
+
+        java.util.List<Map<String, Object>> parts = new java.util.ArrayList<>();
+        parts.add(Map.of("text", prompt));
+
+        if (hasImages) {
+            for (int imgIdx = 0; imgIdx < images.size(); imgIdx++) {
+                ImagePayload img = images.get(imgIdx);
+                if (img != null && img.bytes() != null && img.bytes().length > 0) {
+                    String label = imgIdx == 0
+                            ? "Attached Image 1 (Uploaded Ingredients Label Photo):"
+                            : "Attached Image 2 (Uploaded Nutrition Facts Label Photo):";
+                    parts.add(Map.of("text", label));
+
+                    String mime = img.contentType() != null && !img.contentType().isBlank()
+                            ? img.contentType().trim()
+                            : "image/jpeg";
+                    String base64 = java.util.Base64.getEncoder().encodeToString(img.bytes());
+                    parts.add(Map.of(
+                            "inlineData", Map.of(
+                                    "mimeType", mime,
+                                    "data", base64
+                            )
+                    ));
+                }
+            }
+        }
 
         Map<String, Object> requestPayload = Map.of(
-                "contents", List.of(
+                "contents", java.util.List.of(
                         Map.of(
                                 "role", "user",
-                                "parts", List.of(Map.of("text", prompt))
+                                "parts", parts
                         )
                 ),
                 "generationConfig", Map.of(
@@ -99,53 +155,67 @@ public class GeminiClient {
                 )
         );
 
-        log.info("Sending food normalization prompt to Gemini model '{}' (timeout: {}s)",
-                properties.getModel(), properties.getTimeoutSeconds());
+        List<String> modelsToTry = getModelsToTry();
+        NormalizationException lastException = null;
 
-        try {
-            String rawResponseBody = restClient.post()
-                    .uri(requestUrl)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(GEMINI_API_KEY_HEADER, properties.getApiKey())
-                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestPayload)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, resp) -> {
-                        int code = resp.getStatusCode().value();
-                        log.error("Gemini API error status: {}", code);
-                        if (code == 401 || code == 403) {
-                            throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.");
-                        } else if (code == 429) {
-                            throw new NormalizationException("AI_RATE_LIMIT_EXCEEDED", "AI normalization service is currently busy. Please try again shortly.");
-                        } else if (code == 400) {
-                            throw new NormalizationException("AI_BAD_REQUEST", "Invalid request submitted to AI normalization service.");
-                        } else {
-                            throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization is temporarily unavailable. Please try again.");
-                        }
-                    })
-                    .body(String.class);
+        for (int i = 0; i < modelsToTry.size(); i++) {
+            String model = modelsToTry.get(i);
+            String requestUrl = buildGenerateContentUrl(model);
 
-            return parseGeminiResponse(rawResponseBody);
+            log.info("Sending food normalization prompt to Gemini model '{}' (attempt {}/{}, images: {}, timeout: {}s)",
+                    model, i + 1, modelsToTry.size(), (hasImages ? images.size() : 0), properties.getTimeoutSeconds());
 
-        } catch (NormalizationException ne) {
-            throw ne;
-        } catch (ResourceAccessException rae) {
-            log.error("Gemini request connection timed out or failed: {}", rae.getMessage());
-            throw new NormalizationException("AI_TIMEOUT", "Food normalization request timed out. Please try again.", rae);
-        } catch (RestClientResponseException rcre) {
-            int code = rcre.getStatusCode().value();
-            log.error("Gemini RestClient exception with status {}", code);
-            if (code == 401 || code == 403) {
-                throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.", rcre);
-            } else if (code == 429) {
-                throw new NormalizationException("AI_RATE_LIMIT_EXCEEDED", "AI normalization service is currently busy. Please try again shortly.", rcre);
-            } else {
-                throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization is temporarily unavailable. Please try again.", rcre);
+            try {
+                String rawResponseBody = restClient.post()
+                        .uri(requestUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(GEMINI_API_KEY_HEADER, properties.getApiKey())
+                        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        .body(requestPayload)
+                        .retrieve()
+                        .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                            int code = resp.getStatusCode().value();
+                            log.warn("Gemini API error status {} for model '{}'", code, model);
+                            if (code == 401 || code == 403) {
+                                throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.");
+                            } else if (code == 429) {
+                                throw new NormalizationException("AI_RATE_LIMIT_EXCEEDED", "AI normalization service is currently busy.");
+                            } else if (code == 400) {
+                                throw new NormalizationException("AI_BAD_REQUEST", "Invalid request submitted to AI normalization service.");
+                            } else {
+                                throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "Gemini model " + model + " unavailable (HTTP " + code + ").");
+                            }
+                        })
+                        .body(String.class);
+
+                return parseGeminiResponse(rawResponseBody);
+
+            } catch (NormalizationException ne) {
+                if ("AI_AUTHENTICATION_ERROR".equals(ne.getErrorCode())) {
+                    throw ne;
+                }
+                log.warn("Normalization attempt with model '{}' failed: {}. Checking next fallback model...", model, ne.getMessage());
+                lastException = ne;
+            } catch (ResourceAccessException rae) {
+                log.warn("Gemini connection timed out for model '{}': {}. Checking next fallback model...", model, rae.getMessage());
+                lastException = new NormalizationException("AI_TIMEOUT", "Food normalization request timed out on " + model, rae);
+            } catch (RestClientResponseException rcre) {
+                int code = rcre.getStatusCode().value();
+                log.warn("Gemini RestClient exception ({}) for model '{}'. Checking next fallback model...", code, model);
+                if (code == 401 || code == 403) {
+                    throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.", rcre);
+                }
+                lastException = new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization failed on " + model, rcre);
+            } catch (Exception ex) {
+                log.warn("Unexpected error during Gemini normalization on model '{}': {}", model, ex.getMessage());
+                lastException = new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization failed on " + model, ex);
             }
-        } catch (Exception ex) {
-            log.error("Unexpected error during Gemini normalization: {}", ex.getMessage());
-            throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization is temporarily unavailable. Please try again.", ex);
         }
+
+        if (lastException != null) {
+            throw lastException;
+        }
+        throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "All candidate Gemini models were unavailable.");
     }
 
     public NormalizedFoodData parseGeminiResponse(String responseBody) {
@@ -173,6 +243,7 @@ public class GeminiClient {
 
             // Strip Markdown code fencing if present
             String cleanedJson = stripMarkdownCodeFence(contentText);
+            log.info("Gemini raw normalized response: {}", cleanedJson);
 
             return objectMapper.readValue(cleanedJson, NormalizedFoodData.class);
 
@@ -200,7 +271,6 @@ public class GeminiClient {
     public String generateExplanation(String systemPrompt, String factualContext) {
         validateConfiguration();
         String prompt = systemPrompt + "\n\nFACTUAL CONTEXT:\n" + factualContext;
-        String requestUrl = buildGenerateContentUrl();
 
         Map<String, Object> requestPayload = Map.of(
                 "contents", List.of(
@@ -215,22 +285,27 @@ public class GeminiClient {
                 )
         );
 
-        log.info("Requesting explanation from Gemini for factual context");
-        try {
-            String rawResponseBody = restClient.post()
-                    .uri(requestUrl)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(GEMINI_API_KEY_HEADER, properties.getApiKey())
-                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestPayload)
-                    .retrieve()
-                    .body(String.class);
+        for (String model : getModelsToTry()) {
+            try {
+                String requestUrl = buildGenerateContentUrl(model);
+                String rawResponseBody = restClient.post()
+                        .uri(requestUrl)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(GEMINI_API_KEY_HEADER, properties.getApiKey())
+                        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        .body(requestPayload)
+                        .retrieve()
+                        .body(String.class);
 
-            return extractCandidateText(rawResponseBody);
-        } catch (Exception ex) {
-            log.warn("Gemini explanation generation call failed: {}", ex.getMessage());
-            return null;
+                String text = extractCandidateText(rawResponseBody);
+                if (text != null && !text.isBlank()) {
+                    return text;
+                }
+            } catch (Exception ex) {
+                log.warn("Gemini explanation generation with model '{}' failed: {}", model, ex.getMessage());
+            }
         }
+        return null;
     }
 
     public String extractCandidateText(String responseBody) {
