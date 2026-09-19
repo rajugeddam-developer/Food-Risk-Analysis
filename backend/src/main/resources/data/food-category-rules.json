@@ -1,0 +1,20 @@
+{
+  "explicitPetFoodKeywords": [
+    "dog food", "cat food", "pet food", "pet treat", "puppy", "kitten",
+    "for dogs", "for cats", "canine food", "feline food", "adult dog", "dry dog food", "wet cat food"
+  ],
+  "explicitAnimalFeedKeywords": [
+    "animal feed", "livestock feed", "cattle feed", "poultry feed",
+    "bird feed", "bird seed", "fish feed", "horse feed", "swine feed", "for animal use only"
+  ],
+  "explicitNonFoodKeywords": [
+    "not for human consumption", "for external use only", "laundry detergent",
+    "dishwashing", "floor cleaner", "toilet cleaner", "cosmetic use only",
+    "shampoo", "body wash", "fertilizer", "pesticide", "do not ingest", "hazardous to ingest"
+  ],
+  "humanFoodProductKeywords": [
+    "biscuit", "biscuits", "cookie", "cookies", "cereal", "chips", "crisps", "noodles",
+    "chocolate", "bread", "juice", "snack", "sauce", "beverage", "drink", "milk", "tea",
+    "coffee", "pasta", "soup", "yogurt", "confectionery", "wafer", "crackers", "jam"
+  ]
+}

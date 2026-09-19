@@ -1,0 +1,381 @@
+[
+  {
+    "code": "INS 330",
+    "name": "Citric Acid",
+    "functionalClass": "Acidity Regulator",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "CODEX", "JECFA"],
+    "reasons": [
+      "Naturally occurring organic acid commonly used to adjust acidity and enhance flavor.",
+      "Permitted by FSSAI and Codex Alimentarius under Good Manufacturing Practice (GMP) with no specific concern identified at typical usage levels."
+    ],
+    "synonyms": ["INS330", "E330", "E 330", "330", "CITRIC ACID"]
+  },
+  {
+    "code": "INS 500",
+    "name": "Sodium Carbonates",
+    "functionalClass": "Raising Agent",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "CODEX"],
+    "reasons": [
+      "Common leavening and raising agent used in baking (baking soda).",
+      "Permitted under Good Manufacturing Practices (GMP) by FSSAI."
+    ],
+    "synonyms": ["INS500", "INS 500(ii)", "INS500ii", "E500", "E 500", "SODIUM BICARBONATE"]
+  },
+  {
+    "code": "INS 322",
+    "name": "Lecithins",
+    "functionalClass": "Emulsifier",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "CODEX"],
+    "reasons": [
+      "Naturally derived phospholipid emulsifier commonly obtained from soy or sunflower.",
+      "Widely permitted by FSSAI to maintain emulsion stability in confectionery and baked goods."
+    ],
+    "synonyms": ["INS322", "INS 322(i)", "E322", "E 322", "SOY LECITHIN", "LECITHIN"]
+  },
+  {
+    "code": "INS 412",
+    "name": "Guar Gum",
+    "functionalClass": "Thickener & Stabilizer",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "CODEX"],
+    "reasons": [
+      "Plant-based hydrocolloid dietary fiber used to provide texture and viscosity.",
+      "Permitted food additive under FSSAI and international standards."
+    ],
+    "synonyms": ["INS412", "E412", "E 412", "GUAR GUM"]
+  },
+  {
+    "code": "INS 415",
+    "name": "Xanthan Gum",
+    "functionalClass": "Thickener & Stabilizer",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["JECFA", "CODEX", "FSSAI"],
+    "reasons": [
+      "Naturally fermented polysaccharide hydrocolloid produced by Xanthomonas campestris fermentation.",
+      "JECFA established an Acceptable Daily Intake (ADI) of 'not specified', confirming no specific food-safety concern under Good Manufacturing Practice (GMP). Permitted widely by FSSAI and Codex."
+    ],
+    "synonyms": ["INS415", "E415", "E 415", "XANTHAN GUM"]
+  },
+  {
+    "code": "INS 466",
+    "name": "Sodium Carboxymethyl Cellulose (CMC)",
+    "functionalClass": "Thickener & Stabilizer",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["JECFA", "CODEX", "FSSAI"],
+    "reasons": [
+      "Purified soluble cellulose ether permitted under Good Manufacturing Practice (GMP) by Codex, JECFA (ADI 'not specified'), and FSSAI.",
+      "Functions as an indigestible dietary hydrocolloid providing texture and moisture retention without specific hazard at food-grade usage levels."
+    ],
+    "synonyms": ["INS466", "E466", "E 466", "CARBOXYMETHYL CELLULOSE", "SODIUM CARBOXYMETHYL CELLULOSE", "CELLULOSE GUM", "CMC"]
+  },
+  {
+    "code": "INS 551",
+    "name": "Silicon Dioxide",
+    "functionalClass": "Anti-Caking Agent",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "CODEX"],
+    "reasons": [
+      "Inert mineral-derived anti-caking agent ensuring free flow of seasoning and powdered foods.",
+      "Permitted under standard food regulations (GMP limits)."
+    ],
+    "synonyms": ["INS551", "E551", "E 551", "SILICON DIOXIDE", "SILICA"]
+  },
+  {
+    "code": "INS 621",
+    "name": "Monosodium Glutamate (MSG)",
+    "functionalClass": "Flavor Enhancer",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["JECFA", "CODEX", "FSSAI"],
+    "reasons": [
+      "Naturally derived or fermented sodium salt of glutamic acid used to impart umami (savory) taste.",
+      "JECFA and Codex Alimentarius evaluated MSG with an Acceptable Daily Intake (ADI) of 'not specified', indicating no specific concern identified at typical Good Manufacturing Practice (GMP) levels.",
+      "Permitted by FSSAI with mandatory packaging label declaration ('Contains added MSG')."
+    ],
+    "synonyms": ["INS621", "E621", "E 621", "MSG", "MONOSODIUM GLUTAMATE"]
+  },
+  {
+    "code": "INS 150d",
+    "name": "Caramel IV (Sulfite Ammonia Caramel)",
+    "functionalClass": "Color",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["FSSAI", "CODEX"],
+    "reasons": [
+      "Heat-treated carbohydrate coloring agent prepared with sulfite and ammonium compounds.",
+      "Permitted subject to maximum limits in soft drinks and confectionery by FSSAI."
+    ],
+    "synonyms": ["INS150d", "INS 150(d)", "E150d", "E 150d", "CARAMEL COLOR IV"]
+  },
+  {
+    "code": "INS 407",
+    "name": "Carrageenan",
+    "functionalClass": "Thickener & Stabilizer",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["JECFA", "EFSA", "FSSAI"],
+    "reasons": [
+      "Naturally derived sulfated polygalactan extracted from red edible seaweeds, permitted under GMP by Codex, FSSAI, and FDA.",
+      "Some experimental animal and cellular models have studied gastrointestinal inflammatory pathways with degraded carrageenan (poligeenan); authoritative assessments (JECFA, EFSA) confirm food-grade (undegraded) carrageenan is safe at approved food-use levels."
+    ],
+    "synonyms": ["INS407", "E407", "E 407", "CARRAGEENAN", "IRISH MOSS"]
+  },
+  {
+    "code": "INS 955",
+    "name": "Sucralose",
+    "functionalClass": "Non-Nutritive Sweetener",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["JECFA", "EFSA", "FSSAI"],
+    "reasons": [
+      "Zero-calorie synthetic high-intensity sweetener derived by chlorination of sucrose.",
+      "Evaluated by JECFA, EFSA, and FDA with an established Acceptable Daily Intake (ADI 0-15 mg/kg bw). Permitted by FSSAI within maximum statutory limits.",
+      "Some experimental studies have examined gut microbiome interactions; scientific evidence at typical dietary exposure levels does not establish a confirmed food-safety hazard."
+    ],
+    "synonyms": ["INS955", "E955", "E 955", "SUCRALOSE", "SPLENDA"]
+  },
+  {
+    "code": "INS 433",
+    "name": "Polysorbate 80",
+    "functionalClass": "Emulsifier",
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["JECFA", "EFSA", "FSSAI"],
+    "reasons": [
+      "Synthetic non-ionic surfactant and emulsifier permitted under specific statutory limits by Codex, FDA, and FSSAI.",
+      "JECFA established an Acceptable Daily Intake (ADI) of 0-25 mg/kg bw. In-vitro and rodent studies have explored mucosal interactions, while human clinical evaluations within permitted limits show acceptable tolerance."
+    ],
+    "synonyms": ["INS433", "E433", "E 433", "POLYSORBATE 80", "TWEEN 80", "POLYOXYETHYLENE SORBITAN MONOOLEATE"]
+  },
+  {
+    "code": "INS 102",
+    "name": "Tartrazine",
+    "functionalClass": "Synthetic Food Color",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["FSSAI", "CODEX", "EFSA"],
+    "reasons": [
+      "Synthetic azo dye providing bright lemon yellow coloration.",
+      "Permitted strictly within designated statutory limits (max 100 mg/kg) under FSSAI regulations.",
+      "Requires explicit color declaration on packaging due to sensitivities in susceptible individuals."
+    ],
+    "synonyms": ["INS102", "E102", "E 102", "FD&C YELLOW 5", "TARTRAZINE"]
+  },
+  {
+    "code": "INS 110",
+    "name": "Sunset Yellow FCF",
+    "functionalClass": "Synthetic Food Color",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["FSSAI", "CODEX", "EFSA"],
+    "reasons": [
+      "Synthetic petroleum-derived orange-yellow azo dye.",
+      "Subject to strict quantitative threshold limits under FSSAI food product regulations."
+    ],
+    "synonyms": ["INS110", "E110", "E 110", "SUNSET YELLOW", "FD&C YELLOW 6"]
+  },
+  {
+    "code": "INS 211",
+    "name": "Sodium Benzoate",
+    "functionalClass": "Preservative",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["FSSAI", "CODEX"],
+    "reasons": [
+      "Antimicrobial chemical preservative active in acidic pH environments.",
+      "Permitted subject to statutory maximum levels (typically 120-750 ppm) under FSSAI."
+    ],
+    "synonyms": ["INS211", "E211", "E 211", "SODIUM BENZOATE"]
+  },
+  {
+    "code": "INS 951",
+    "name": "Aspartame",
+    "functionalClass": "Non-Nutritive Sweetener",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["FSSAI", "WHO", "JECFA"],
+    "reasons": [
+      "Artificial non-caloric high-intensity sweetener.",
+      "Permitted with maximum allowable usage levels; requires statutory declaration 'CONTAINS PHENYLALANINE' for individuals with phenylketonuria (PKU).",
+      "Subject to Acceptable Daily Intake (ADI 0-40 mg/kg bw) evaluated by WHO/JECFA."
+    ],
+    "synonyms": ["INS951", "E951", "E 951", "ASPARTAME"]
+  },
+  {
+    "code": "INS 320",
+    "name": "Butylated Hydroxyanisole (BHA)",
+    "functionalClass": "Antioxidant",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["JECFA", "FSSAI", "CODEX"],
+    "reasons": [
+      "Synthetic phenolic antioxidant permitted in edible oils and fats subject to statutory limits (typically 100-200 mg/kg).",
+      "JECFA established an Acceptable Daily Intake (ADI) of 0-0.5 mg/kg bw. High-dose rodent bioassays showed forestomach cellular proliferation, but human relevance at dietary levels remains controlled under strict regulatory caps."
+    ],
+    "synonyms": ["INS320", "E320", "E 320", "BHA", "BUTYLATED HYDROXYANISOLE"]
+  },
+  {
+    "code": "INS 321",
+    "name": "Butylated Hydroxytoluene (BHT)",
+    "functionalClass": "Antioxidant",
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["JECFA", "FSSAI", "CODEX"],
+    "reasons": [
+      "Synthetic lipophilic antioxidant used to inhibit oxidative rancidity in fats and oils.",
+      "Permitted under strict quantitative threshold limits by FSSAI and Codex. JECFA established an Acceptable Daily Intake (ADI) of 0-0.3 mg/kg bw."
+    ],
+    "synonyms": ["INS321", "E321", "E 321", "BHT", "BUTYLATED HYDROXYTOLUENE"]
+  },
+  {
+    "code": "INS 250",
+    "name": "Sodium Nitrite",
+    "functionalClass": "Preservative & Color Fixative",
+    "regulatoryStatus": "RESTRICTED",
+    "jurisdiction": "International",
+    "jurisdictionalStatus": {
+      "India": "RESTRICTED (FSSAI limits residual levels in processed meat standards)",
+      "European Union": "RESTRICTED (Regulation (EC) No 1333/2008 sets strict maximum added limits)",
+      "United States": "RESTRICTED (FDA 21 CFR 172.175 limits to max 200 ppm in cured meats)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["FSSAI", "WHO", "EFSA", "FDA"],
+    "reasons": [
+      "Inorganic salt used to prevent Clostridium botulinum spore outgrowth in processed meats.",
+      "Subject to stringent statutory maximum residual limits due to potential formation of nitrosamines under high heat."
+    ],
+    "synonyms": ["INS250", "E250", "E 250", "SODIUM NITRITE"]
+  },
+  {
+    "code": "INS 924a",
+    "name": "Potassium Bromate",
+    "functionalClass": "Flour Treatment Agent",
+    "regulatoryStatus": "PROHIBITED",
+    "jurisdiction": "India / EU",
+    "jurisdictionalStatus": {
+      "India": "PROHIBITED (FSSAI prohibited in food in 2016)",
+      "European Union": "PROHIBITED (Directive 95/2/EC)",
+      "United States": "RESTRICTED (FDA recommends bakers avoid use; permitted under 21 CFR 136.110)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["FSSAI", "JECFA"],
+    "reasons": [
+      "Regulatory Action (India): Statutorily prohibited by FSSAI and removed from the list of permitted food additives in 2016.",
+      "Scientific Evaluation (JECFA): Evaluated as a genotoxic carcinogen with conclusion that use as a flour treatment agent is not acceptable.",
+      "Codex Alimentarius: General Standard for Food Additives (CXS 192-1995) does not authorize potassium bromate for use in standardized flours."
+    ],
+    "synonyms": ["INS924a", "INS 924", "POTASSIUM BROMATE"]
+  },
+  {
+    "code": "INS 216",
+    "name": "Propylparaben",
+    "functionalClass": "Preservative",
+    "regulatoryStatus": "RESTRICTED",
+    "jurisdiction": "Regional Variation",
+    "jurisdictionalStatus": {
+      "European Union": "PROHIBITED (Commission Directive 2006/52/EC withdrew food authorization)",
+      "United States": "RESTRICTED (Prohibited in California under California Food Safety Act effective 2027; historical federal listing 21 CFR 184.1670)",
+      "India": "RESTRICTED (FSSAI standards do not permit propylparaben in general food categories)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["EFSA", "FDA", "FSSAI"],
+    "reasons": [
+      "Scientific Assessment (EFSA, 2004): Evaluated endocrine-disrupting potential and adverse reproductive effects in juvenile rodent models; concluded an Acceptable Daily Intake (ADI) could not be established.",
+      "Regulatory Action (European Union): Withdrawn from the list of authorized food additives in the EU pursuant to Commission Directive 2006/52/EC.",
+      "Regulatory Action (United States): Prohibited in food products under the California Food Safety Act (effective 2027); remains under federal FDA review.",
+      "Regulatory Action (India): FSSAI food product regulations do not include propylparaben in the general list of permitted preservatives."
+    ],
+    "synonyms": ["INS216", "E216", "E 216", "PROPYLPARABEN", "PROPYL PARABEN", "PROPYL P-HYDROXYBENZOATE"]
+  },
+  {
+    "code": "INS 927a",
+    "name": "Azodicarbonamide",
+    "functionalClass": "Flour Treatment Agent",
+    "regulatoryStatus": "PROHIBITED",
+    "jurisdiction": "Regional Variation",
+    "jurisdictionalStatus": {
+      "India": "PROHIBITED (FSSAI Food Products Standards & Food Additives Regulations)",
+      "European Union": "PROHIBITED (Regulation (EC) No 1333/2008)",
+      "Australia": "PROHIBITED (FSANZ does not permit food additive use)",
+      "United States": "PERMITTED (FDA 21 CFR 172.806, max 45 ppm in flour)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["FSSAI", "EFSA", "FDA", "JECFA"],
+    "reasons": [
+      "Regulatory Status (India): Prohibited for use as a flour treatment agent under FSSAI regulations.",
+      "Regulatory Status (European Union & Australia): Prohibited for food use due to thermal degradation breakdown concerns.",
+      "Regulatory Status (United States): Permitted under FDA 21 CFR 172.806 as an aging and bleaching ingredient in cereal flour at levels not exceeding 45 ppm.",
+      "Scientific Evaluation (JECFA): Thermal decomposition during baking yields semicarbazide (SEM), which exhibited weak genotoxic potential in experimental models."
+    ],
+    "synonyms": ["INS927a", "INS 927", "E927a", "E927", "E 927a", "AZODICARBONAMIDE", "ADA"]
+  },
+  {
+    "code": "INS 171",
+    "name": "Titanium Dioxide",
+    "functionalClass": "Color & Opacifying Agent",
+    "regulatoryStatus": "RESTRICTED",
+    "jurisdiction": "Regional Variation",
+    "jurisdictionalStatus": {
+      "European Union": "PROHIBITED (Commission Regulation (EU) 2022/63)",
+      "United States": "PERMITTED (FDA 21 CFR 73.575, max 1% by weight)",
+      "India": "RESTRICTED (FSSAI limits use to specified food categories)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["EFSA", "FDA"],
+    "reasons": [
+      "Scientific Assessment (EFSA, 2021): Concluded titanium dioxide can no longer be considered safe as a food additive due to concerns regarding genotoxicity of nanoparticle fractions.",
+      "Regulatory Action (European Union): Banned as a food additive in the EU under Commission Regulation (EU) 2022/63.",
+      "Regulatory Action (United States): Permitted in food under FDA 21 CFR 73.575 up to 1% by weight pending ongoing re-evaluation."
+    ],
+    "synonyms": ["INS171", "E171", "E 171", "TITANIUM DIOXIDE"]
+  },
+  {
+    "code": "BVO",
+    "name": "Brominated Vegetable Oil",
+    "functionalClass": "Emulsifier & Clouding Agent",
+    "regulatoryStatus": "PROHIBITED",
+    "jurisdiction": "US / India / EU",
+    "jurisdictionalStatus": {
+      "United States": "PROHIBITED (FDA revoked authorization in 2024)",
+      "India": "PROHIBITED (FSSAI does not permit BVO)",
+      "European Union": "PROHIBITED (Not authorized under Regulation (EC) No 1333/2008)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["FDA", "FSSAI", "EFSA"],
+    "reasons": [
+      "Regulatory Action (United States): FDA issued final rule revoking regulation authorizing BVO in food in 2024 following toxicological bioassays demonstrating tissue bioaccumulation and thyroid/hepatic toxicity.",
+      "Regulatory Action (India & European Union): Not authorized for use in food products under FSSAI and European Union regulations."
+    ],
+    "synonyms": ["BVO", "BROMINATED VEGETABLE OIL", "BROMINATED OIL"]
+  },
+  {
+    "code": "INS 127",
+    "name": "Red 3 (Erythrosine)",
+    "functionalClass": "Synthetic Food Color",
+    "regulatoryStatus": "RESTRICTED",
+    "jurisdiction": "Regional Variation",
+    "jurisdictionalStatus": {
+      "United States": "RESTRICTED (State prohibition in California from 2027; federal cosmetic ban)",
+      "European Union": "RESTRICTED (EFSA/Commission limits food use exclusively to cocktail/candied cherries)",
+      "India": "RESTRICTED (FSSAI permits within statutory limits, max 100 mg/kg in permitted foods)"
+    },
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["FDA", "EFSA", "FSSAI"],
+    "reasons": [
+      "Regulatory Status (United States): FDA banned cosmetic and externally applied uses; food use prohibited under California Food Safety Act (effective 2027).",
+      "Regulatory Status (European Union): Strictly restricted exclusively to cocktail cherries and candied cherries under EU regulations.",
+      "Regulatory Status (India): Permitted under FSSAI regulations strictly within statutory maximum limits (max 100 mg/kg) in specified product categories."
+    ],
+    "synonyms": ["INS127", "E127", "E 127", "ERYTHROSINE", "RED 3", "FD&C RED NO. 3", "FD&C RED 3"]
+  }
+]

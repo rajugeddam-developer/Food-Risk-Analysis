@@ -1,0 +1,698 @@
+.scan-page {
+  padding: 2rem 1.25rem 4rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.scan-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.scan-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.scan-badge {
+  align-self: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #10b981;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  text-transform: uppercase;
+}
+
+.scan-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.scan-subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.scan-demo-pill {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-demo-quickfill {
+  background: transparent;
+  border: 0;
+  color: #38bdf8;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+.btn-demo-quickfill:hover {
+  color: #7dd3fc;
+}
+
+.scan-validation-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.15rem;
+  border-radius: 0.625rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.scan-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .scan-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Upload Card Styles */
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.upload-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upload-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-card-icon {
+  font-size: 1.75rem;
+}
+
+.upload-card-badge {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+}
+
+.upload-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.upload-card-desc {
+  font-size: 0.84375rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.upload-action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.upload-buttons-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+@media (min-width: 480px) {
+  .upload-buttons-row {
+    flex-direction: row;
+  }
+}
+
+.upload-hint-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Preview Inside Upload Card */
+.upload-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.upload-preview-frame {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-preview-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.04em;
+}
+
+.upload-file-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-file-dim {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+.upload-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.upload-preview-actions > button {
+  flex: 1;
+  min-height: 44px;
+}
+
+/* Inline Card Validation Alert */
+.upload-card-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.85rem;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.upload-card-error .error-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: -0.1rem;
+}
+
+.upload-card-error .error-text {
+  flex: 1;
+}
+
+.upload-card-error .error-dismiss {
+  background: transparent;
+  border: none;
+  color: #fca5a5;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.upload-card-error .error-dismiss:hover {
+  opacity: 1;
+}
+
+.upload-validating-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 0.5rem;
+  color: #38bdf8;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+
+/* Action Section */
+.scan-action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 480px;
+  margin: 1rem auto 0;
+  width: 100%;
+}
+
+.scan-privacy-reminder {
+  font-size: 0.78125rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.scan-tips-card {
+  margin-top: 1rem;
+}
+
+.tips-card-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 0.5rem;
+}
+
+.tips-list {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+}
+
+/* Progress Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.scan-progress-card {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.15);
+}
+
+.scan-progress-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.scan-progress-icon-badge {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.scan-radar-pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #38bdf8;
+  opacity: 0.6;
+  animation: radarPulse 1.5s infinite;
+}
+
+@keyframes radarPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.scan-progress-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.scan-progress-sim-notice {
+  font-size: 0.75rem;
+  color: #38bdf8;
+}
+
+.scan-progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.scan-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #10b981);
+  border-radius: 9999px;
+  transition: width 0.35s ease;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+.scan-progress-percent {
+  text-align: right;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  font-family: monospace;
+  margin-top: -0.75rem;
+}
+
+.scan-stage-details {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.625rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.scan-stage-counter {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #f59e0b;
+}
+
+.scan-stage-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.scan-stage-sub {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+}
+
+.scan-stages-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.scan-step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.35rem;
+}
+
+.scan-step--completed {
+  color: #10b981;
+}
+
+.scan-step--active {
+  color: #f8fafc;
+  background: rgba(56, 189, 248, 0.08);
+  font-weight: 600;
+}
+
+.scan-step-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
+.scan-step--completed .scan-step-dot {
+  background: #10b981;
+  color: #090d16;
+  font-weight: bold;
+}
+
+.scan-step--active .scan-step-dot {
+  background: #38bdf8;
+  color: #090d16;
+  font-weight: bold;
+}
+
+/* Status hint for dual-upload requirement */
+.scan-status-hint {
+  font-size: 0.8125rem;
+  color: #f59e0b;
+  text-align: center;
+  margin: -0.25rem 0 0;
+  font-weight: 500;
+}
+
+/* M5 Handoff Modal Styles */
+.handoff-modal-card {
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.15);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.handoff-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.handoff-badge {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.handoff-modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.25;
+}
+
+.handoff-modal-subtitle {
+  font-size: 0.84375rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.handoff-surfaces-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+}
+
+@media (min-width: 480px) {
+  .handoff-surfaces-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.handoff-surface-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.625rem;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.handoff-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.handoff-surface-icon {
+  font-size: 1.25rem;
+}
+
+.handoff-surface-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.handoff-source-badge {
+  font-size: 0.6875rem;
+  color: #38bdf8;
+}
+
+.handoff-thumbnail-frame {
+  width: 100%;
+  height: 100px;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.handoff-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.handoff-surface-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.handoff-meta-name {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.handoff-meta-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.handoff-meta-tag {
+  font-size: 0.6875rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+}
+
+.handoff-pipeline-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 0.625rem;
+  padding: 0.875rem 1rem;
+}
+
+.handoff-pipeline-notice .notice-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.notice-heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin: 0 0 0.25rem;
+}
+
+.notice-text {
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.handoff-privacy-text {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.handoff-actions-row {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.handoff-actions-row > button {
+  flex: 1;
+}
+

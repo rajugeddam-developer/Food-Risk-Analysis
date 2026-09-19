@@ -1,0 +1,167 @@
+[
+  {
+    "canonicalName": "Sugar",
+    "aliases": ["SUGAR", "WHITE SUGAR", "CANE SUGAR", "BEET SUGAR", "TABLE SUGAR", "SUCROSE"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["WHO", "FSSAI"],
+    "reasons": [
+      "Standard culinary caloric carbohydrate sweetener.",
+      "Standard culinary ingredient evaluated without specific hazard classification; dietary health impact evaluated quantitatively based on declared sugar concentration and serving size."
+    ]
+  },
+  {
+    "canonicalName": "Salt",
+    "aliases": ["SALT", "IODISED SALT", "IODIZED SALT", "SODIUM CHLORIDE", "TABLE SALT", "EDIBLE COMMON SALT"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["WHO", "FSSAI"],
+    "reasons": [
+      "Essential dietary mineral seasoning providing sodium and iodine fortification.",
+      "Essential culinary mineral seasoning; cardiovascular health impact evaluated quantitatively based on total sodium concentration."
+    ]
+  },
+  {
+    "canonicalName": "Water",
+    "aliases": ["WATER", "AQUA", "POTABLE WATER", "DRINKING WATER"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI"],
+    "reasons": [
+      "Essential universal culinary ingredient and solvent conforming to potable standards."
+    ]
+  },
+  {
+    "canonicalName": "Wheat Flour",
+    "aliases": ["WHEAT FLOUR", "WHOLE WHEAT FLOUR", "ATTA", "WHOLE WHEAT ATTA"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "POSITIVE",
+    "sourceIds": ["FSSAI", "ICMR"],
+    "reasons": [
+      "Whole cereal grain flour retaining endosperm, germ, and bran.",
+      "Nutrient-dense source of complex carbohydrates, B-vitamins, and dietary fibre."
+    ]
+  },
+  {
+    "canonicalName": "Rolled Oats",
+    "aliases": ["ROLLED OATS", "OATS", "OAT FLAKES", "WHOLE GRAIN OATS"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "POSITIVE",
+    "sourceIds": ["FSSAI", "WHO", "ICMR"],
+    "reasons": [
+      "Whole grain cereal rich in beta-glucan soluble dietary fibre.",
+      "Associated with healthy lipid metabolism and digestive health."
+    ]
+  },
+  {
+    "canonicalName": "Almonds",
+    "aliases": ["ALMONDS", "ALMOND", "BADAM"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "POSITIVE",
+    "sourceIds": ["FSSAI", "ICMR"],
+    "reasons": [
+      "Nutrient-dense tree nut providing monounsaturated fatty acids, dietary protein, and vitamin E."
+    ]
+  },
+  {
+    "canonicalName": "Rice",
+    "aliases": ["RICE", "BROWN RICE", "RICE FLOUR"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "ICMR"],
+    "reasons": [
+      "Standard staple cereal grain providing complex carbohydrates."
+    ]
+  },
+  {
+    "canonicalName": "Milk",
+    "aliases": ["MILK", "MILK SOLIDS", "COW MILK", "SKIMMED MILK POWDER", "WHOLE MILK POWDER"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "NO_CONCERN",
+    "sourceIds": ["FSSAI", "ICMR"],
+    "reasons": [
+      "Nutritional dairy ingredient supplying complete protein, calcium, and riboflavin."
+    ]
+  },
+  {
+    "canonicalName": "Palm Oil",
+    "aliases": ["PALM OIL", "PALMOLEIN", "PALM OLEIN", "REFINED PALM OIL", "REFINED PALM OLEIN", "REFINED PALMOLEIN", "FRACTIONATED PALM OIL"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["WHO", "FSSAI"],
+    "reasons": [
+      "Rich in saturated fatty acids (approximately 50% saturated fat, predominantly palmitic acid).",
+      "WHO dietary guidance advises keeping saturated fatty acid intake below 10% of total caloric consumption."
+    ]
+  },
+  {
+    "canonicalName": "Partially Hydrogenated Vegetable Oil",
+    "aliases": [
+      "PARTIALLY HYDROGENATED VEGETABLE OIL",
+      "HYDROGENATED VEGETABLE FAT",
+      "HYDROGENATED VEGETABLE OIL",
+      "VANASPATI",
+      "HYDROGENATED FAT",
+      "HYDROGENATED OIL"
+    ],
+    "regulatoryStatus": "RESTRICTED",
+    "riskLevel": "HIGH_ATTENTION",
+    "sourceIds": ["WHO", "FSSAI"],
+    "reasons": [
+      "Primary dietary source of industrially produced trans fatty acids (iTFAs).",
+      "WHO recommends eliminating or strictly limiting industrial trans fat to less than 2% of total fat/oil composition.",
+      "FSSAI has enacted a statutory cap of 2% trans-fat in all edible fats and oils in India."
+    ]
+  },
+  {
+    "canonicalName": "High Fructose Corn Syrup",
+    "aliases": ["HIGH FRUCTOSE CORN SYRUP", "HFCS", "HFCS 55", "HFCS 42", "CORN SYRUP"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "MODERATE_ATTENTION",
+    "sourceIds": ["WHO"],
+    "reasons": [
+      "Industrial liquid sweetener consisting of unbound glucose and fructose.",
+      "WHO guidelines strongly recommend reducing free sugar intake to under 10% of total dietary energy, noting association with dental caries and weight gain."
+    ]
+  },
+  {
+    "canonicalName": "Refined Wheat Flour",
+    "aliases": ["REFINED WHEAT FLOUR", "MAIDA", "BLEACHED WHEAT FLOUR", "ENRICHED WHEAT FLOUR"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["WHO", "FSSAI"],
+    "reasons": [
+      "Refined cereal endosperm with germ and bran removed, resulting in lower fiber and micronutrient density compared to whole grains.",
+      "Has a higher glycemic response than intact whole wheat."
+    ]
+  },
+  {
+    "canonicalName": "Invert Sugar Syrup",
+    "aliases": ["INVERT SUGAR SYRUP", "INVERT SUGAR", "INVERT SYRUP", "LIQUID GLUCOSE"],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["WHO"],
+    "reasons": [
+      "Concentrated free sugar solution formed by hydrolyzing sucrose into glucose and fructose.",
+      "Contributes directly to added and total sugar intake."
+    ]
+  },
+  {
+    "canonicalName": "Artificial Flavoring Substances",
+    "aliases": [
+      "ARTIFICIAL FLAVOURING SUBSTANCES",
+      "ARTIFICIAL FLAVORING SUBSTANCES",
+      "ARTIFICIAL FLAVOURS",
+      "ARTIFICIAL FLAVORS",
+      "NATURE IDENTICAL FLAVOURING SUBSTANCES",
+      "NATURE IDENTICAL FLAVORING SUBSTANCES"
+    ],
+    "regulatoryStatus": "PERMITTED",
+    "riskLevel": "LOW_ATTENTION",
+    "sourceIds": ["FSSAI"],
+    "reasons": [
+      "Synthetically manufactured flavor compounds legally permitted under FSSAI standards.",
+      "Requires explicit label declaration to inform consumers of synthetic origin."
+    ]
+  }
+]

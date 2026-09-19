@@ -1,0 +1,46 @@
+{
+  "scoringRuleVersion": "1.0",
+  "baselineScore": 100,
+  "minScore": 0,
+  "maxScore": 100,
+  "maxTotalPenalty": 100,
+  "maxTotalBonus": 15,
+  "statusThresholds": {
+    "goodChoiceMin": 80,
+    "needsAttentionMin": 50
+  },
+  "additiveDeductions": {
+    "banned": -30,
+    "highAttention": -15,
+    "moderateAttention": -8,
+    "lowAttention": -3
+  },
+  "nutritionDeductions": {
+    "highSugar": -15,
+    "moderateSugar": -8,
+    "highSodium": -15,
+    "moderateSodium": -8,
+    "highSaturatedFat": -10,
+    "transFatDetected": -20
+  },
+  "compositeOverlapRules": {
+    "sugarOverlap": {
+      "penalty": -20,
+      "reason": "High sugar presence identified across both ingredient formulation and nutritional sugar metrics."
+    },
+    "transFatOverlap": {
+      "penalty": -25,
+      "reason": "Industrial hydrogenated lipid ingredient formulation corroborated by declared trans fatty acid profile."
+    },
+    "sodiumOverlap": {
+      "penalty": -20,
+      "reason": "Added salt ingredient formulation corroborated by elevated quantitative sodium content."
+    }
+  },
+  "positiveBonuses": {
+    "sourceOfFibre": 5,
+    "sourceOfProtein": 5,
+    "lowerSodium": 5,
+    "lowerSugar": 5
+  }
+}

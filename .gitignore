@@ -1,0 +1,28 @@
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.env
+backups/
+*.sql
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Backend Build & Dependencies
+backend/target/
+backend/*.log
+!backend/.mvn/wrapper/
+!backend/tessdata/eng.traineddata
+
+# Frontend Build & Dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.log

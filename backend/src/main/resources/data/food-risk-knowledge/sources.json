@@ -1,0 +1,65 @@
+[
+  {
+    "id": "WHO",
+    "organization": "World Health Organization",
+    "country": "International",
+    "sourceType": "HEALTH_ORGANIZATION",
+    "version": "WHO Guidelines on Sugars, Sodium, and Trans Fatty Acids Intake",
+    "lastVerified": "2024",
+    "reference": "https://www.who.int/news-room/fact-sheets/detail/healthy-diet"
+  },
+  {
+    "id": "FSSAI",
+    "organization": "Food Safety and Standards Authority of India",
+    "country": "India",
+    "sourceType": "REGULATORY",
+    "version": "Food Safety and Standards (Food Products Standards and Food Additives) Regulations",
+    "lastVerified": "2024",
+    "reference": "https://www.fssai.gov.in"
+  },
+  {
+    "id": "CODEX",
+    "organization": "Codex Alimentarius Commission (FAO/WHO)",
+    "country": "International",
+    "sourceType": "STANDARD",
+    "version": "General Standard for Food Additives (CXS 192-1995) & Nutrition Guidelines (CAC/GL 23-1997)",
+    "lastVerified": "2024",
+    "reference": "https://www.fao.org/fao-who-codexalimentarius"
+  },
+  {
+    "id": "JECFA",
+    "organization": "Joint FAO/WHO Expert Committee on Food Additives",
+    "country": "International",
+    "sourceType": "SCIENTIFIC_ADVISORY",
+    "version": "Compendium of Food Additive Specifications & Toxicological Evaluations",
+    "lastVerified": "2024",
+    "reference": "https://www.who.int/groups/joint-fao-who-expert-committee-on-food-additives-(jecfa)"
+  },
+  {
+    "id": "ICMR",
+    "organization": "Indian Council of Medical Research - National Institute of Nutrition (ICMR-NIN)",
+    "country": "India",
+    "sourceType": "HEALTH_ORGANIZATION",
+    "version": "Dietary Guidelines for Indians (2024)",
+    "lastVerified": "2024",
+    "reference": "https://www.nin.res.in"
+  },
+  {
+    "id": "EFSA",
+    "organization": "European Food Safety Authority",
+    "country": "European Union",
+    "sourceType": "REGULATORY",
+    "version": "EFSA Panel on Food Additives and Nutrient Sources Added to Food (ANS)",
+    "lastVerified": "2024",
+    "reference": "https://www.efsa.europa.eu"
+  },
+  {
+    "id": "FDA",
+    "organization": "U.S. Food and Drug Administration",
+    "country": "United States",
+    "sourceType": "REGULATORY",
+    "version": "Code of Federal Regulations Title 21 (Food and Drugs)",
+    "lastVerified": "2024",
+    "reference": "https://www.fda.gov/food"
+  }
+]

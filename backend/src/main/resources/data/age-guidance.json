@@ -1,0 +1,132 @@
+[
+  {
+    "ageGroup": "CHILDREN",
+    "triggerType": "NUTRIENT",
+    "nutrient": "TOTAL_SUGARS",
+    "threshold": 10.0,
+    "unit": "g",
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "WHO advises strict limitation of free sugars for children (<10% of dietary energy) due to strong associations with dental caries and pediatric metabolic health.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "CHILDREN",
+    "triggerType": "NUTRIENT",
+    "nutrient": "ADDED_SUGARS",
+    "threshold": 5.0,
+    "unit": "g",
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "WHO conditionally recommends keeping added sugars under 5% of energy intake for growing children.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "CHILDREN",
+    "triggerType": "ADDITIVE_KEYWORD",
+    "keywords": ["TARTRAZINE", "SUNSET YELLOW", "INS 102", "INS 110", "E102", "E110"],
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "Contains synthetic azo colorants requiring explicit statutory packaging advisory for children in multiple food regulatory jurisdictions.",
+    "sourceId": "FSSAI",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "CHILDREN",
+    "triggerType": "NUTRIENT",
+    "nutrient": "TRANS_FAT",
+    "threshold": 0.2,
+    "unit": "g",
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "Industrial trans fatty acids have zero nutritional benefit and impede healthy cardiovascular development in children.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "CHILDREN",
+    "triggerType": "NUTRIENT",
+    "nutrient": "SODIUM",
+    "threshold": 600.0,
+    "unit": "mg",
+    "attentionLevel": "MODERATE_ATTENTION",
+    "reason": "Elevated sodium warrants portion moderation to maintain age-appropriate daily sodium limits (1,000–1,500mg/day).",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "ADULTS",
+    "triggerType": "NUTRIENT",
+    "nutrient": "SATURATED_FAT",
+    "threshold": 5.0,
+    "unit": "g",
+    "attentionLevel": "MODERATE_ATTENTION",
+    "reason": "Saturated fatty acid concentration contributes to overall dietary lipid profile; WHO recommends keeping below 10% total energy.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "ADULTS",
+    "triggerType": "NUTRIENT",
+    "nutrient": "TRANS_FAT",
+    "threshold": 0.2,
+    "unit": "g",
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "Industrial trans fats are strongly linked to elevated LDL cholesterol and coronary heart disease risk.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "ADULTS",
+    "triggerType": "NUTRIENT",
+    "nutrient": "SODIUM",
+    "threshold": 1000.0,
+    "unit": "mg",
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "High sodium concentration (>1,000mg/100g) accounts for over half of the WHO adult daily benchmark (2,000mg/day).",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "ADULTS",
+    "triggerType": "NUTRIENT",
+    "nutrient": "TOTAL_SUGARS",
+    "threshold": 22.5,
+    "unit": "g",
+    "attentionLevel": "MODERATE_ATTENTION",
+    "reason": "High sugar contribution warrants consideration of portion sizing in standard adult diets.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "OLDER_ADULTS",
+    "triggerType": "NUTRIENT",
+    "nutrient": "SODIUM",
+    "threshold": 600.0,
+    "unit": "mg",
+    "attentionLevel": "HIGHER_ATTENTION",
+    "reason": "Sodium moderation is particularly pertinent for older adults managing blood pressure and arterial stiffness.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "OLDER_ADULTS",
+    "triggerType": "NUTRIENT",
+    "nutrient": "SATURATED_FAT",
+    "threshold": 5.0,
+    "unit": "g",
+    "attentionLevel": "MODERATE_ATTENTION",
+    "reason": "Saturated fat concentration is relevant for lipid profile management in older adults.",
+    "sourceId": "WHO",
+    "evidenceAvailable": true
+  },
+  {
+    "ageGroup": "OLDER_ADULTS",
+    "triggerType": "POSITIVE_NUTRIENT",
+    "nutrient": "FIBRE",
+    "threshold": 3.0,
+    "unit": "g",
+    "attentionLevel": "ACCEPTABLE",
+    "reason": "Beneficial source of dietary fibre supporting gastrointestinal transit and glycemic management.",
+    "sourceId": "CODEX",
+    "evidenceAvailable": true
+  }
+]

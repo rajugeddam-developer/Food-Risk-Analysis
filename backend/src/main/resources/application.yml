@@ -1,0 +1,88 @@
+spring:
+  application:
+    name: food-risk-analysis-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:food_risk_analysis}${DB_SSL_PARAMS:}}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: FoodRiskHikariPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 25MB
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    redis:
+      enabled: false
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+ocr:
+  tesseract:
+    data-path: ${TESSDATA_PATH:tessdata}
+    language: ${TESSERACT_LANGUAGE:eng}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-1.5-flash}
+  timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:30}
+
+analysis:
+  session:
+    ttl-minutes: ${ANALYSIS_SESSION_TTL_MINUTES:15}
+  orchestrator:
+    timeout-seconds: ${ANALYSIS_TIMEOUT_SECONDS:60}
+
+rate-limit:
+  analyze-per-minute: ${RATE_LIMIT_ANALYZE:10}
+  general-per-minute: ${RATE_LIMIT_GENERAL:60}
+

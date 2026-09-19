@@ -1,0 +1,25 @@
+# Load test configuration profile
+# Enables high-concurrency testing with mocked AI/OCR and in-memory caching
+spring:
+  config:
+    activate:
+      on-profile: loadtest
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+
+analysis:
+  session:
+    ttl-minutes: 30
+  orchestrator:
+    timeout-seconds: 15
+
+rate-limit:
+  analyze-per-minute: 1000
+  general-per-minute: 5000
+
+logging:
+  level:
+    com.foodrisk: INFO
+    org.springframework.web: WARN

@@ -1,0 +1,1083 @@
+/* ==========================================================================
+   Food Risk Assessment PWA — Milestone M11 Result Screen Styles
+   Sleek glassmorphism, mobile-first responsive architecture (320px–1080px)
+   ========================================================================== */
+
+.result-page {
+  padding: 2rem 1.25rem 4rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.result-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Header */
+.result-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.result-badge {
+  align-self: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #38bdf8;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  text-transform: uppercase;
+}
+
+.result-title {
+  font-size: clamp(1.85rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.result-product-meta {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.meta-separator {
+  margin: 0 0.5rem;
+  color: #475569;
+}
+
+.result-toast {
+  align-self: center;
+  padding: 0.625rem 1.25rem;
+  background: #10b981;
+  color: #064e3b;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+  animation: fadeIn 0.2s ease;
+}
+
+/* Demo Preview Bar */
+.demo-preview-banner {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.demo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.demo-banner-icon {
+  font-size: 1.25rem;
+}
+
+.demo-banner-text {
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.demo-state-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.demo-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 36px;
+}
+
+.demo-chip:hover {
+  background: rgba(56, 189, 248, 0.15);
+  color: #f8fafc;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.demo-chip--active {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+/* Human Consumption Warning & Assurance Banners */
+.consumption-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(185, 28, 28, 0.35), rgba(127, 29, 29, 0.5));
+  border: 2px solid #ef4444;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.25);
+  animation: pulseGlow 2.5s infinite;
+}
+
+.warning-banner-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.warning-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.warning-banner-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #fee2e2;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.warning-banner-desc {
+  font-size: 0.875rem;
+  color: #fca5a5;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.consumption-verified-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+}
+
+.verified-icon {
+  font-size: 1.25rem;
+}
+
+.verified-text {
+  font-size: 0.875rem;
+  color: #6ee7b7;
+}
+
+/* Top Summary Card */
+.result-summary-card {
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 35px rgba(56, 189, 248, 0.08);
+}
+
+.result-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .result-summary-grid {
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+  }
+}
+
+.result-gauge-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.result-score-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.result-score-caption {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.result-status-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.875rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.score-withheld-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px dashed rgba(239, 68, 68, 0.4);
+  border-radius: 16px;
+  text-align: center;
+  max-width: 240px;
+}
+
+.score-withheld-icon {
+  font-size: 2.25rem;
+}
+
+.score-withheld-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #f87171;
+  margin: 0;
+}
+
+.score-withheld-reason {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.result-classification-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.identity-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-pill-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.category-badge-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.reliability-badge-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.completeness-badge-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.summary-product-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.result-guidance-box {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.guidance-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #38bdf8;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem 0;
+}
+
+.guidance-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.guidance-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.84375rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.guidance-bullet {
+  color: #38bdf8;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Key Concerns & Positive Highlights Grid */
+.highlights-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .highlights-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.concern-card {
+  border-left: 4px solid #ef4444 !important;
+}
+
+.positive-card {
+  border-left: 4px solid #10b981 !important;
+}
+
+.highlight-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.highlight-icon {
+  font-size: 1.25rem;
+}
+
+.highlight-title {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.highlight-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.highlight-item {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+.highlight-item--concern {
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.highlight-item--positive {
+  background: rgba(16, 185, 129, 0.08);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.highlight-empty {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Tabbed Analysis Container */
+.result-tabs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.result-tab-bar {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.result-tab-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  min-height: 48px;
+}
+
+.result-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+.result-tab-btn--active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.15);
+}
+
+.analysis-tab-card {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.analysis-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.analysis-card-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.analysis-card-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 0.25rem 0;
+}
+
+.analysis-card-subtitle {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Population Guidance Grid */
+.population-guidance-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .population-guidance-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.population-tile {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pop-icon {
+  font-size: 1.5rem;
+}
+
+.pop-title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin: 0;
+}
+
+.pop-desc {
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.limitations-box {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+}
+
+.limitations-heading {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem 0;
+}
+
+.limitations-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.78125rem;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+/* Ingredients Tab */
+.ingredient-filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 38px;
+}
+
+.filter-chip--active {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+  color: #d8b4fe;
+}
+
+.ingredients-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ingredient-item-card {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ingredient-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ingredient-main-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ingredient-name {
+  font-size: 0.9375rem;
+  color: #f8fafc;
+}
+
+.additive-code-badge {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.functional-class-tag {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.ingredient-badges-group {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.risk-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.risk-pill--no_concern {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.risk-pill--low_attention {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.risk-pill--moderate_attention {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.risk-pill--high_attention {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.reg-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.reg-pill--permitted {
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.ingredient-reason-text {
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ingredient-citation-row {
+  font-size: 0.71875rem;
+  color: #64748b;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.citation-label {
+  font-weight: 700;
+}
+
+/* Nutrition Modern Grid */
+.nutrition-basis-notice {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.nutrition-grid-modern {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .nutrition-grid-modern {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .nutrition-grid-modern {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.nutrition-stat-card {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nutrition-stat-card--high {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-nutrient-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.stat-status-badge {
+  font-size: 0.65625rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.stat-badge--above {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.stat-badge--within {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stat-badge--neutral {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.stat-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.stat-unit {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.stat-reference-row {
+  font-size: 0.71875rem;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
+}
+
+.stat-reason-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Score Waterfall (Explainability & Anti-Double-Counting) */
+.score-waterfall-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.waterfall-step {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  border-radius: 10px;
+  gap: 1rem;
+}
+
+.waterfall-step--baseline {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.waterfall-step--penalty {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.waterfall-step--overlap {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.waterfall-step--bonus {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.waterfall-step--final {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(16, 185, 129, 0.2));
+  border: 2px solid #38bdf8;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.step-factor {
+  font-size: 0.875rem;
+  color: #f8fafc;
+}
+
+.step-desc {
+  font-size: 0.78125rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.step-source {
+  font-size: 0.6875rem;
+  color: #64748b;
+}
+
+.impact-badge {
+  font-size: 0.875rem;
+  font-weight: 800;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+}
+
+.impact-badge--penalty {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.impact-badge--bonus {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.step-points--final {
+  font-size: 1.5rem;
+  color: #38bdf8;
+}
+
+/* Standards Tab */
+.standards-version-banner {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.version-pill {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 8px;
+  padding: 0.5rem 0.875rem;
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+}
+
+.standards-citations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.citation-card {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.citation-bullet {
+  font-size: 1.25rem;
+}
+
+.citation-name {
+  font-size: 0.875rem;
+  color: #f8fafc;
+}
+
+.citation-desc {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Action Buttons */
+.result-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  max-width: 580px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 540px) {
+  .result-actions-row {
+    flex-direction: row;
+  }
+}
+
+/* Persistent Disclaimer Card */
+.result-disclaimer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-left: 4px solid #38bdf8 !important;
+}
+
+.disclaimer-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+.disclaimer-icon {
+  font-size: 1.5rem;
+  margin-top: 0.15rem;
+}
+
+.disclaimer-heading {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.disclaimer-copy {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+}
+
+/* Keyframe Animations */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 10px 30px rgba(239, 68, 68, 0.25); }
+  50% { box-shadow: 0 10px 40px rgba(239, 68, 68, 0.45); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .result-page {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  .result-actions-row,
+  .demo-preview-banner,
+  .result-tab-bar {
+    display: none !important;
+  }
+  .result-summary-card,
+  .analysis-tab-card,
+  .result-disclaimer-card {
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+  .result-title,
+  .summary-product-name,
+  .analysis-card-title {
+    color: #000000 !important;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .consumption-warning-banner,
+  .result-toast {
+    animation: none !important;
+  }
+}
