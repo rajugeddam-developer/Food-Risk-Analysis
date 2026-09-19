@@ -73,13 +73,13 @@ public class ImagePreprocessor {
         int width = focused.getWidth();
         int height = focused.getHeight();
 
-        // 2. Small Text Handling: Determine target scaling factor
-        // Upscale small text so Tesseract LSTM has sufficient pixel stroke width (30-40px font height)
+        // 2. Text Scaling: Cap oversized photos and upscale small text
+        int maxDim = Math.max(width, height);
         double scale = 1.0;
-        if (width < 1400 && height < 1400) {
-            scale = 1.5; // 1.5x bicubic upscale
-        } else if (width < 2200 && height < 2200) {
-            scale = 1.25;
+        if (maxDim > 1600) {
+            scale = 1600.0 / maxDim; // Downscale oversized camera photos to avoid OCR timeouts on cloud hosts
+        } else if (maxDim < 900) {
+            scale = 1.4; // Upscale small text so Tesseract LSTM has sufficient pixel stroke width
         }
 
         int targetWidth = (int) Math.round(width * scale);

@@ -75,13 +75,13 @@ ocr:
 gemini:
   api-key: ${GEMINI_API_KEY:}
   model: ${GEMINI_MODEL:gemini-1.5-flash}
-  timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:30}
+  timeout-seconds: ${GEMINI_TIMEOUT_SECONDS:60}
 
 analysis:
   session:
     ttl-minutes: ${ANALYSIS_SESSION_TTL_MINUTES:15}
   orchestrator:
-    timeout-seconds: ${ANALYSIS_TIMEOUT_SECONDS:60}
+    timeout-seconds: ${ANALYSIS_TIMEOUT_SECONDS:120}
 
 rate-limit:
   analyze-per-minute: ${RATE_LIMIT_ANALYZE:10}

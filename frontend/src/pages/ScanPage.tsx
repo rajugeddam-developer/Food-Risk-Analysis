@@ -105,7 +105,7 @@ export const ScanPage: React.FC = () => {
       // 3. Poll status with backoff until completed or failed
       let delayMs = 1500;
       const startTime = Date.now();
-      const maxTimeoutMs = 65000;
+      const maxTimeoutMs = 130000;
       let networkFailureRetries = 0;
       const maxNetworkRetries = 3;
 

@@ -95,25 +95,27 @@ public class OcrService {
         OcrLabelResult nutritionResult = OcrLabelResult.missing();
 
         try {
-            // Process Ingredients Image if provided
-            if (hasIngredient) {
-                ingredientResult = extractLabel(
-                        ingredientImage.bytes(),
-                        ingredientImage.contentType(),
-                        ingredientImage.originalFilename(),
-                        OcrLabelType.INGREDIENTS
-                );
-            }
+            // Process both images concurrently if both are provided
+            java.util.concurrent.CompletableFuture<OcrLabelResult> ingFuture = hasIngredient
+                    ? java.util.concurrent.CompletableFuture.supplyAsync(() -> extractLabel(
+                            ingredientImage.bytes(),
+                            ingredientImage.contentType(),
+                            ingredientImage.originalFilename(),
+                            OcrLabelType.INGREDIENTS
+                    ))
+                    : java.util.concurrent.CompletableFuture.completedFuture(OcrLabelResult.missing());
 
-            // Process Nutrition Image if provided
-            if (hasNutrition) {
-                nutritionResult = extractLabel(
-                        nutritionImage.bytes(),
-                        nutritionImage.contentType(),
-                        nutritionImage.originalFilename(),
-                        OcrLabelType.NUTRITION
-                );
-            }
+            java.util.concurrent.CompletableFuture<OcrLabelResult> nutFuture = hasNutrition
+                    ? java.util.concurrent.CompletableFuture.supplyAsync(() -> extractLabel(
+                            nutritionImage.bytes(),
+                            nutritionImage.contentType(),
+                            nutritionImage.originalFilename(),
+                            OcrLabelType.NUTRITION
+                    ))
+                    : java.util.concurrent.CompletableFuture.completedFuture(OcrLabelResult.missing());
+
+            ingredientResult = ingFuture.join();
+            nutritionResult = nutFuture.join();
 
             long totalTime = System.currentTimeMillis() - startAll;
             log.info("Completed OCR processing for session {} in {} ms (ingredients: {}, nutrition: {})",

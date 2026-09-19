@@ -141,7 +141,7 @@ public class AnalysisOrchestratorService {
             @Autowired(required = false) ImageValidator imageValidator,
             @Autowired(required = false) AnalysisMetrics metrics,
             @Qualifier("analysisTaskExecutor") @Autowired(required = false) Executor orchestrationExecutor,
-            @Value("${analysis.orchestrator.timeout-seconds:60}") int timeoutSeconds
+            @Value("${analysis.orchestrator.timeout-seconds:120}") int timeoutSeconds
     ) {
         this.sessionService = sessionService;
         this.ocrService = ocrService;
@@ -422,15 +422,19 @@ public class AnalysisOrchestratorService {
         List<com.foodrisk.gemini.GeminiClient.ImagePayload> imagePayloads = new ArrayList<>();
         try {
             if (ingredientImage != null && !ingredientImage.isEmpty()) {
+                byte[] raw = ingredientImage.getBytes();
+                byte[] opt = optimizeImageForGemini(raw);
                 imagePayloads.add(new com.foodrisk.gemini.GeminiClient.ImagePayload(
-                        ingredientImage.getBytes(),
-                        ingredientImage.getContentType()
+                        opt,
+                        opt != raw ? "image/jpeg" : ingredientImage.getContentType()
                 ));
             }
             if (nutritionImage != null && !nutritionImage.isEmpty() && nutritionImage != ingredientImage) {
+                byte[] raw = nutritionImage.getBytes();
+                byte[] opt = optimizeImageForGemini(raw);
                 imagePayloads.add(new com.foodrisk.gemini.GeminiClient.ImagePayload(
-                        nutritionImage.getBytes(),
-                        nutritionImage.getContentType()
+                        opt,
+                        opt != raw ? "image/jpeg" : nutritionImage.getContentType()
                 ));
             }
         } catch (Exception ex) {
@@ -647,5 +651,44 @@ public class AnalysisOrchestratorService {
             return "Label normalization temporarily unavailable. Please try again in a few moments.";
         }
         return "Unable to complete food risk assessment. Please check packaging images and retry.";
+    }
+
+    private byte[] optimizeImageForGemini(byte[] rawBytes) {
+        if (rawBytes == null || rawBytes.length < 500 * 1024) {
+            return rawBytes;
+        }
+        try {
+            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(rawBytes));
+            if (img == null) {
+                return rawBytes;
+            }
+            int w = img.getWidth();
+            int h = img.getHeight();
+            int maxDim = Math.max(w, h);
+            if (maxDim > 1600) {
+                double factor = 1600.0 / maxDim;
+                int targetW = (int) Math.round(w * factor);
+                int targetH = (int) Math.round(h * factor);
+                java.awt.image.BufferedImage resized = new java.awt.image.BufferedImage(targetW, targetH, java.awt.image.BufferedImage.TYPE_INT_RGB);
+                java.awt.Graphics2D g = resized.createGraphics();
+                try {
+                    g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    g.drawImage(img, 0, 0, targetW, targetH, null);
+                } finally {
+                    g.dispose();
+                }
+                java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                javax.imageio.ImageIO.write(resized, "JPEG", baos);
+                byte[] compressed = baos.toByteArray();
+                if (compressed.length < rawBytes.length) {
+                    log.info("Optimized packaging image for Gemini Vision: {} KB -> {} KB ({}x{} -> {}x{})",
+                            rawBytes.length / 1024, compressed.length / 1024, w, h, targetW, targetH);
+                    return compressed;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Image optimization for Gemini skipped: {}", e.getMessage());
+        }
+        return rawBytes;
     }
 }

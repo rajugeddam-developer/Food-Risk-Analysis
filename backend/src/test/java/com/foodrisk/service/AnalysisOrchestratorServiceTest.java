@@ -142,8 +142,8 @@ class AnalysisOrchestratorServiceTest {
         NutritionAnalysisResult nutrition = new NutritionAnalysisResult(sessionId, DataCompleteness.COMPLETE, NutritionBasis.PER_100G, null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), "2026.09", Instant.now());
         FoodRiskAssessment assessment = createMockAssessment();
 
-        when(ocrService.processOcr(sessionId, ingredientFile, nutritionFile)).thenReturn(ocrResp);
-        when(normalizationService.normalize(eq(sessionId), any())).thenReturn(normData);
+        when(ocrService.processOcr(eq(sessionId), eq(ingredientFile), any())).thenReturn(ocrResp);
+        when(normalizationService.normalize(eq(sessionId), any(), any())).thenReturn(normData);
         when(fingerprintService.computeFingerprint(normData)).thenReturn("sha256-fp");
         when(analysisCache.get("sha256-fp")).thenReturn(Optional.empty()); // Cache miss
 
@@ -179,8 +179,8 @@ class AnalysisOrchestratorServiceTest {
                 normData, null, null, null, cachedAssessment
         );
 
-        when(ocrService.processOcr(sessionId, ingredientFile, null)).thenReturn(ocrResp);
-        when(normalizationService.normalize(eq(sessionId), any())).thenReturn(normData);
+        when(ocrService.processOcr(eq(sessionId), eq(ingredientFile), any())).thenReturn(ocrResp);
+        when(normalizationService.normalize(eq(sessionId), any(), any())).thenReturn(normData);
         when(fingerprintService.computeFingerprint(normData)).thenReturn("cached-fp");
         when(analysisCache.get("cached-fp")).thenReturn(Optional.of(cached));
 
