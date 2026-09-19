@@ -158,7 +158,7 @@ class AnalysisOrchestratorM13ResilienceTest {
         verify(sessionService).updateStatus(eq(session), eq(AnalysisStatus.FAILED));
         AnalysisStatusResponse status = orchestrator.getStatus(sessionId);
         assertThat(status.status()).isEqualTo(AnalysisStatus.FAILED);
-        assertThat(status.errorMessage()).contains("sharper image");
+        assertThat(status.errorMessage()).contains("retake");
     }
 
     @Test

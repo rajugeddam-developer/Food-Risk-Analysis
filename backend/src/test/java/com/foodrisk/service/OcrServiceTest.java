@@ -41,16 +41,25 @@ class OcrServiceTest {
     @Mock
     private AnalysisSessionService sessionService;
 
+    @Mock
+    private com.foodrisk.ocr.ImageQualityAssessor qualityAssessor;
+
+    @Mock
+    private com.foodrisk.ocr.OcrExtractionValidator extractionValidator;
+
     private OcrService ocrService;
     private UUID sessionId;
     private FoodAnalysisSession activeSession;
 
     @BeforeEach
     void setUp() {
-        ocrService = new OcrService(imageValidator, ocrProvider, sessionService);
+        ocrService = new OcrService(imageValidator, ocrProvider, sessionService, qualityAssessor, extractionValidator);
         sessionId = UUID.randomUUID();
         activeSession = new FoodAnalysisSession("test-token", AnalysisStatus.CREATED, Instant.now().plusSeconds(900));
         activeSession.setId(sessionId);
+
+        org.mockito.Mockito.lenient().when(qualityAssessor.assess(any(byte[].class), any()))
+                .thenReturn(com.foodrisk.ocr.ImageQualityAssessor.ImageQualityResult.ok(100.0, 50.0, 500, 500));
     }
 
     private MockMultipartFile createDummyImage(String paramName) {
@@ -120,7 +129,7 @@ class OcrServiceTest {
     @Test
     @DisplayName("Should reject request when both images are missing or empty")
     void testBothImagesMissing() {
-        assertThatThrownBy(() -> ocrService.processOcr(sessionId, null, null))
+        assertThatThrownBy(() -> ocrService.processOcr(sessionId, (org.springframework.web.multipart.MultipartFile) null, (org.springframework.web.multipart.MultipartFile) null))
                 .isInstanceOf(InvalidImageException.class)
                 .hasMessageContaining("At least one packaging label image");
     }

@@ -12,6 +12,8 @@ import com.foodrisk.dto.OcrAnalysisResponse;
 import com.foodrisk.entity.AnalysisStatus;
 import com.foodrisk.entity.FoodAnalysisSession;
 import com.foodrisk.exception.ErrorCategory;
+import com.foodrisk.exception.ImageSizeLimitExceededException;
+import com.foodrisk.exception.InvalidImageException;
 import com.foodrisk.exception.NormalizationException;
 import com.foodrisk.exception.OcrProcessingException;
 import com.foodrisk.exception.SessionExpiredException;
@@ -19,6 +21,9 @@ import com.foodrisk.exception.SessionNotFoundException;
 import com.foodrisk.metrics.AnalysisMetrics;
 import com.foodrisk.nutrition.NutritionAnalysisResult;
 import com.foodrisk.nutrition.NutritionAnalysisService;
+import com.foodrisk.ocr.BufferedImageInput;
+import com.foodrisk.ocr.ImageValidator;
+import com.foodrisk.ocr.OcrExtractionValidator;
 import com.foodrisk.risk.IngredientRiskAnalysisResult;
 import com.foodrisk.risk.IngredientRiskService;
 import com.foodrisk.scoring.FoodRiskAssessment;
@@ -49,14 +54,15 @@ import java.util.concurrent.TimeoutException;
  * M11/M12 Internal Analysis Orchestrator Service.
  *
  * Coordinates the full analysis pipeline behind a unified endpoint:
- * 1. Image validation
- * 2. OCR text extraction
- * 3. AI normalization
- * 4. Product fingerprint cache check (24h duplicate product cache)
- * 5. M7 Product categorization
- * 6. M8 Ingredient/additive risk analysis
- * 7. M9 Nutrition standards evaluation
- * 8. M10 Food Awareness Score synthesis
+ * 1. Synchronous image validation & in-memory buffering (prevents servlet lifecycle races)
+ * 2. OCR text extraction & regional quality assessment
+ * 3. OCR sufficiency validation (evaluates structural integrity & partial inputs)
+ * 4. AI normalization (Gemini)
+ * 5. Product fingerprint cache check (24h duplicate product cache)
+ * 6. M7 Product categorization
+ * 7. M8 Ingredient/additive risk analysis
+ * 8. M9 Nutrition standards evaluation
+ * 9. M10 Food Awareness Score synthesis
  *
  * Enforces timeout protection (default: 60s). On failure, transitions session to FAILED
  * with a sanitized message and never leaves it stuck in PROCESSING.
@@ -76,6 +82,8 @@ public class AnalysisOrchestratorService {
     private final FoodRiskAssessmentService assessmentService;
     private final ProductFingerprintService fingerprintService;
     private final ProductAnalysisCache analysisCache;
+    private final OcrExtractionValidator extractionValidator;
+    private final ImageValidator imageValidator;
     private final AnalysisMetrics metrics;
     private final int timeoutSeconds;
 
@@ -126,6 +134,8 @@ public class AnalysisOrchestratorService {
             FoodRiskAssessmentService assessmentService,
             ProductFingerprintService fingerprintService,
             ProductAnalysisCache analysisCache,
+            @Autowired(required = false) OcrExtractionValidator extractionValidator,
+            @Autowired(required = false) ImageValidator imageValidator,
             @Autowired(required = false) AnalysisMetrics metrics,
             @Qualifier("analysisTaskExecutor") @Autowired(required = false) Executor orchestrationExecutor,
             @Value("${analysis.orchestrator.timeout-seconds:60}") int timeoutSeconds
@@ -140,9 +150,31 @@ public class AnalysisOrchestratorService {
         this.assessmentService = assessmentService;
         this.fingerprintService = fingerprintService;
         this.analysisCache = analysisCache;
+        this.extractionValidator = extractionValidator != null ? extractionValidator : new OcrExtractionValidator();
+        this.imageValidator = imageValidator != null ? imageValidator : new ImageValidator();
         this.metrics = metrics;
         this.orchestrationExecutor = orchestrationExecutor != null ? orchestrationExecutor : Executors.newFixedThreadPool(25);
         this.timeoutSeconds = timeoutSeconds;
+    }
+
+    public AnalysisOrchestratorService(
+            AnalysisSessionService sessionService,
+            OcrService ocrService,
+            FoodNormalizationService normalizationService,
+            AnalysisContextStore contextStore,
+            FoodClassificationService classificationService,
+            IngredientRiskService ingredientRiskService,
+            NutritionAnalysisService nutritionService,
+            FoodRiskAssessmentService assessmentService,
+            ProductFingerprintService fingerprintService,
+            ProductAnalysisCache analysisCache,
+            AnalysisMetrics metrics,
+            Executor orchestrationExecutor,
+            int timeoutSeconds
+    ) {
+        this(sessionService, ocrService, normalizationService, contextStore, classificationService,
+             ingredientRiskService, nutritionService, assessmentService, fingerprintService, analysisCache,
+             new OcrExtractionValidator(), new ImageValidator(), metrics, orchestrationExecutor, timeoutSeconds);
     }
 
     public AnalysisOrchestratorService(
@@ -160,7 +192,7 @@ public class AnalysisOrchestratorService {
     ) {
         this(sessionService, ocrService, normalizationService, contextStore, classificationService,
              ingredientRiskService, nutritionService, assessmentService, fingerprintService, analysisCache,
-             null, null, timeoutSeconds);
+             new OcrExtractionValidator(), new ImageValidator(), null, null, timeoutSeconds);
     }
 
     /**
@@ -184,12 +216,53 @@ public class AnalysisOrchestratorService {
             return getStatus(sessionId);
         }
 
+        // 1. Synchronously validate upload before async handoff
+        boolean ingEmpty = ingredientImage == null || ingredientImage.isEmpty();
+        boolean nutEmpty = nutritionImage == null || nutritionImage.isEmpty();
+        if (ingEmpty && nutEmpty) {
+            runningSessions.remove(sessionId);
+            throw new InvalidImageException("At least one packaging label image (ingredients or nutrition) must be provided.");
+        }
+
+        // 2. Synchronously capture image bytes into immutable payloads on the HTTP thread
+        // This permanently fixes the Tomcat servlet-bound temp file recycling bug
+        final BufferedImageInput safeIngredientInput;
+        final BufferedImageInput safeNutritionInput;
+        try {
+            safeIngredientInput = !ingEmpty ? BufferedImageInput.from(ingredientImage) : null;
+            safeNutritionInput = !nutEmpty ? BufferedImageInput.from(nutritionImage) : null;
+        } catch (InvalidImageException | ImageSizeLimitExceededException e) {
+            runningSessions.remove(sessionId);
+            handlePipelineFailure(sessionId, sanitizeErrorMessage(e));
+            return new AnalysisStatusResponse(
+                    sessionId,
+                    AnalysisStatus.FAILED,
+                    "FAILED",
+                    sanitizeErrorMessage(e),
+                    session.getExpiresAt()
+            );
+        } catch (Exception e) {
+            log.error("Failed to buffer uploaded images for session {}: {}", sessionId, e.getMessage());
+            runningSessions.remove(sessionId);
+            handlePipelineFailure(sessionId, "Failed to read uploaded packaging image data. Please retry.");
+            return new AnalysisStatusResponse(
+                    sessionId,
+                    AnalysisStatus.FAILED,
+                    "FAILED",
+                    "Failed to read uploaded packaging image data. Please retry.",
+                    session.getExpiresAt()
+            );
+        }
+
+        final MultipartFile safeIngredientImage = safeIngredientInput != null ? safeIngredientInput.toMultipartFile("ingredientImage") : null;
+        final MultipartFile safeNutritionImage = safeNutritionInput != null ? safeNutritionInput.toMultipartFile("nutritionImage") : null;
+
         sessionService.updateStatus(session, AnalysisStatus.PROCESSING);
         updateStage(sessionId, "IMAGE_VALIDATION");
 
         CompletableFuture.runAsync(() -> {
             try {
-                executeAnalysisPipeline(sessionId, ingredientImage, nutritionImage);
+                executeAnalysisPipeline(sessionId, safeIngredientImage, safeNutritionImage);
             } catch (Exception e) {
                 log.error("Analysis pipeline failed for session {}: {}", sessionId, e.getMessage(), e);
                 handlePipelineFailure(sessionId, sanitizeErrorMessage(e));
@@ -275,8 +348,11 @@ public class AnalysisOrchestratorService {
 
         // 1. Image validation
         updateStage(sessionId, "IMAGE_VALIDATION");
-        if ((ingredientImage == null || ingredientImage.isEmpty()) && (nutritionImage == null || nutritionImage.isEmpty())) {
-            throw new IllegalArgumentException("At least one food packaging image (ingredients or nutrition) must be provided.");
+        boolean hasIng = ingredientImage != null && !ingredientImage.isEmpty();
+        boolean hasNut = nutritionImage != null && !nutritionImage.isEmpty();
+
+        if (!hasIng && !hasNut) {
+            throw new InvalidImageException("At least one packaging label image (ingredients or nutrition) must be provided.");
         }
 
         // 2. OCR processing
@@ -288,34 +364,36 @@ public class AnalysisOrchestratorService {
             metrics.recordOcrDuration(Duration.between(ocrStart, Instant.now()));
         }
 
-        // 3. AI normalization
-        updateStage(sessionId, "AI_NORMALIZATION");
-        log.info("Session {}: Starting AI text normalization", sessionId);
-        String ingredientText = ocrResponse.ingredients() != null ? ocrResponse.ingredients().rawText() : null;
-        String nutritionText = ocrResponse.nutrition() != null ? ocrResponse.nutrition().rawText() : null;
+        // 3. OCR Sufficiency & Semantic Validation
+        OcrExtractionValidator.OverallValidationResult sufficiency =
+                extractionValidator.evaluateSufficiency(
+                        ocrResponse.ingredients(), hasIng,
+                        ocrResponse.nutrition(), hasNut
+                );
 
-        // OCR Quality & Confidence check
-        boolean hasExtractedText = (ingredientText != null && !ingredientText.isBlank()) ||
-                                   (nutritionText != null && !nutritionText.isBlank());
-        if (!hasExtractedText) {
+        if (!sufficiency.canProceed()) {
+            log.info("Session {}: OCR extraction rejected: {}", sessionId, sufficiency.userGuidance());
             throw new OcrProcessingException(
-                    ErrorCategory.OCR_LOW_CONFIDENCE,
-                    "We couldn't read the label clearly. Please capture a sharper image with the ingredient list fully visible."
+                    sufficiency.category() != null ? sufficiency.category() : ErrorCategory.OCR_INSUFFICIENT,
+                    sufficiency.userGuidance()
             );
         }
 
-        boolean lowConfidence = (ocrResponse.ingredients() != null && ocrResponse.ingredients().present() &&
-                ocrResponse.ingredients().confidence() != null && ocrResponse.ingredients().confidence() > 0.0f && ocrResponse.ingredients().confidence() < 20.0f) &&
-            (ocrResponse.nutrition() == null || !ocrResponse.nutrition().present() ||
-                (ocrResponse.nutrition().confidence() != null && ocrResponse.nutrition().confidence() > 0.0f && ocrResponse.nutrition().confidence() < 20.0f));
-        if (lowConfidence) {
-            throw new OcrProcessingException(
-                    ErrorCategory.OCR_LOW_CONFIDENCE,
-                    "We couldn't read the label clearly. Please capture a sharper image with the ingredient list fully visible."
-            );
-        }
+        // Support partial OCR states:
+        // - If ingredients readable and nutrition insufficient -> proceed with ingredients, nutrition is null
+        // - If ingredients insufficient and nutrition readable -> ingredients null, nutrition proceeds
+        // - If both readable -> both proceed
+        String ingredientText = (sufficiency.ingredientsUsable() && ocrResponse.ingredients() != null)
+                ? ocrResponse.ingredients().rawText()
+                : null;
+        String nutritionText = (sufficiency.nutritionUsable() && ocrResponse.nutrition() != null)
+                ? ocrResponse.nutrition().rawText()
+                : null;
 
-        // 3. AI normalization
+        log.info("Session {}: OCR text sufficiency verified (ingredientsUsable={}, nutritionUsable={})",
+                sessionId, sufficiency.ingredientsUsable(), sufficiency.nutritionUsable());
+
+        // 4. AI normalization (Gemini is strictly restricted to text normalization and entity extraction)
         updateStage(sessionId, "AI_NORMALIZATION");
         log.info("Session {}: Starting AI text normalization", sessionId);
         NormalizeRequest normRequest = new NormalizeRequest(
@@ -329,7 +407,7 @@ public class AnalysisOrchestratorService {
         }
         contextStore.storeNormalizedFoodData(sessionId, normalizedData);
 
-        // 4. Duplicate product fingerprint cache check
+        // 5. Duplicate product fingerprint cache check
         String fingerprint = fingerprintService.computeFingerprint(normalizedData);
         Optional<CachedProductAnalysis> cachedOpt = analysisCache.get(fingerprint);
         if (cachedOpt.isPresent()) {
@@ -354,22 +432,22 @@ public class AnalysisOrchestratorService {
             metrics.recordCacheMiss();
         }
 
-        // 5. Product classification (M7)
+        // 6. Product classification (M7)
         updateStage(sessionId, "PRODUCT_CLASSIFICATION");
         log.info("Session {}: Classifying product category", sessionId);
         FoodClassificationResult classification = classificationService.classifyProduct(sessionId);
 
-        // 6. Ingredient risk analysis (M8)
+        // 7. Ingredient risk analysis (M8)
         updateStage(sessionId, "INGREDIENT_RISK_ANALYSIS");
         log.info("Session {}: Analyzing ingredient & additive risks", sessionId);
         IngredientRiskAnalysisResult ingredientRisk = ingredientRiskService.analyzeIngredientRisk(sessionId);
 
-        // 7. Nutrition analysis (M9)
+        // 8. Nutrition analysis (M9)
         updateStage(sessionId, "NUTRITION_ANALYSIS");
         log.info("Session {}: Analyzing nutrition against standards", sessionId);
         NutritionAnalysisResult nutrition = nutritionService.analyzeNutrition(sessionId);
 
-        // 8. Food Awareness Score synthesis (M10)
+        // 9. Food Awareness Score synthesis (M10)
         updateStage(sessionId, "SCORE_SYNTHESIS");
         log.info("Session {}: Synthesizing Food Awareness Assessment", sessionId);
         FoodRiskAssessment assessment = assessmentService.getAssessment(sessionId);
@@ -463,14 +541,24 @@ public class AnalysisOrchestratorService {
             return "An unexpected error occurred during food label analysis. Please try again.";
         }
         Throwable root = ex.getCause() != null ? ex.getCause() : ex;
+
+        if (root instanceof OcrProcessingException ocrEx) {
+            return ocrEx.getMessage();
+        }
+        if (ex instanceof OcrProcessingException ocrEx) {
+            return ocrEx.getMessage();
+        }
+        if (root instanceof InvalidImageException imgEx) {
+            return imgEx.getMessage();
+        }
+        if (ex instanceof InvalidImageException imgEx) {
+            return imgEx.getMessage();
+        }
+        if (root instanceof ImageSizeLimitExceededException || ex instanceof ImageSizeLimitExceededException) {
+            return "Image file size exceeds the 10MB limit. Please upload a smaller photo.";
+        }
         if (root instanceof NormalizationException || ex instanceof NormalizationException) {
             return "Label normalization temporarily unavailable. Please try again in a few moments.";
-        }
-        if (root instanceof OcrProcessingException) {
-            return root.getMessage();
-        }
-        if (ex instanceof OcrProcessingException) {
-            return ex.getMessage();
         }
         return sanitizeErrorMessage(ex.getMessage());
     }
@@ -479,11 +567,19 @@ public class AnalysisOrchestratorService {
         if (rawMessage == null || rawMessage.isBlank()) {
             return "An unexpected error occurred during food label analysis. Please try again.";
         }
-        if (rawMessage.contains("couldn't read the label") || rawMessage.contains("sharper image")) {
+        // Preserve specific user retake guidance
+        if (rawMessage.contains("couldn't read") || rawMessage.contains("Please retake")
+                || rawMessage.contains("capture the") || rawMessage.contains("blurry")
+                || rawMessage.contains("focus") || rawMessage.contains("contrast")
+                || rawMessage.contains("resolution") || rawMessage.contains("ingredients")
+                || rawMessage.contains("nutrition") || rawMessage.contains("lighting")) {
             return rawMessage;
         }
         if (rawMessage.contains("timed out") || rawMessage.contains("Timeout")) {
             return "Analysis timed out. Please check image clarity and try again.";
+        }
+        if (rawMessage.contains("empty or missing")) {
+            return "Uploaded packaging photo is empty or missing. Please select photos and retry.";
         }
         if (rawMessage.contains("corrupt") || rawMessage.contains("Invalid image") || rawMessage.contains("Unsupported")) {
             return "Unable to process the image. Please upload a clear JPEG, PNG, or WebP photo.";

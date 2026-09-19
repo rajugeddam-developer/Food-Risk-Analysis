@@ -5,19 +5,22 @@ import com.foodrisk.dto.OcrLabelResult;
 import com.foodrisk.entity.AnalysisStatus;
 import com.foodrisk.entity.FoodAnalysisSession;
 import com.foodrisk.exception.InvalidImageException;
+import com.foodrisk.ocr.BufferedImageInput;
+import com.foodrisk.ocr.ImageQualityAssessor;
 import com.foodrisk.ocr.ImageValidator;
+import com.foodrisk.ocr.OcrExtractionValidator;
 import com.foodrisk.ocr.OcrLabelType;
 import com.foodrisk.ocr.OcrProvider;
 import com.foodrisk.ocr.OcrResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
@@ -37,21 +40,44 @@ public class OcrService {
     private final ImageValidator imageValidator;
     private final OcrProvider ocrProvider;
     private final AnalysisSessionService sessionService;
+    private final ImageQualityAssessor qualityAssessor;
+    private final OcrExtractionValidator extractionValidator;
+
+    @Autowired
+    public OcrService(
+            ImageValidator imageValidator,
+            OcrProvider ocrProvider,
+            AnalysisSessionService sessionService,
+            @Autowired(required = false) ImageQualityAssessor qualityAssessor,
+            @Autowired(required = false) OcrExtractionValidator extractionValidator
+    ) {
+        this.imageValidator = imageValidator;
+        this.ocrProvider = ocrProvider;
+        this.sessionService = sessionService;
+        this.qualityAssessor = qualityAssessor != null ? qualityAssessor : new ImageQualityAssessor();
+        this.extractionValidator = extractionValidator != null ? extractionValidator : new OcrExtractionValidator();
+    }
 
     public OcrService(
             ImageValidator imageValidator,
             OcrProvider ocrProvider,
             AnalysisSessionService sessionService
     ) {
-        this.imageValidator = imageValidator;
-        this.ocrProvider = ocrProvider;
-        this.sessionService = sessionService;
+        this(imageValidator, ocrProvider, sessionService, new ImageQualityAssessor(), new OcrExtractionValidator());
     }
 
-    public OcrAnalysisResponse processOcr(
+    /**
+     * Executes OCR using immutable BufferedImageInput payloads.
+     * Prevents servlet lifecycle temp-file recycling bugs across asynchronous thread boundaries.
+     */
+    /**
+     * Executes OCR using immutable BufferedImageInput payloads.
+     * Prevents servlet lifecycle temp-file recycling bugs across asynchronous thread boundaries.
+     */
+    public OcrAnalysisResponse processOcrPayloads(
             UUID sessionId,
-            MultipartFile ingredientImage,
-            MultipartFile nutritionImage
+            BufferedImageInput ingredientImage,
+            BufferedImageInput nutritionImage
     ) {
         boolean hasIngredient = ingredientImage != null && !ingredientImage.isEmpty();
         boolean hasNutrition = nutritionImage != null && !nutritionImage.isEmpty();
@@ -71,12 +97,22 @@ public class OcrService {
         try {
             // Process Ingredients Image if provided
             if (hasIngredient) {
-                ingredientResult = extractLabel(ingredientImage, OcrLabelType.INGREDIENTS);
+                ingredientResult = extractLabel(
+                        ingredientImage.bytes(),
+                        ingredientImage.contentType(),
+                        ingredientImage.originalFilename(),
+                        OcrLabelType.INGREDIENTS
+                );
             }
 
             // Process Nutrition Image if provided
             if (hasNutrition) {
-                nutritionResult = extractLabel(nutritionImage, OcrLabelType.NUTRITION);
+                nutritionResult = extractLabel(
+                        nutritionImage.bytes(),
+                        nutritionImage.contentType(),
+                        nutritionImage.originalFilename(),
+                        OcrLabelType.NUTRITION
+                );
             }
 
             long totalTime = System.currentTimeMillis() - startAll;
@@ -98,14 +134,38 @@ public class OcrService {
         }
     }
 
-    private OcrLabelResult extractLabel(MultipartFile imageFile, OcrLabelType labelType) {
-        // Validate image format, size, magic bytes, decodability
-        imageValidator.validate(imageFile);
+    /**
+     * Overload for MultipartFile inputs.
+     */
+    public OcrAnalysisResponse processOcr(
+            UUID sessionId,
+            MultipartFile ingredientImage,
+            MultipartFile nutritionImage
+    ) {
+        BufferedImageInput ingInput = ingredientImage != null && !ingredientImage.isEmpty()
+                ? BufferedImageInput.from(ingredientImage, imageValidator)
+                : null;
+        BufferedImageInput nutInput = nutritionImage != null && !nutritionImage.isEmpty()
+                ? BufferedImageInput.from(nutritionImage, imageValidator)
+                : null;
 
-        // Ephemeral temp file with cryptographically random UUID name and recognized image extension
+        return processOcrPayloads(sessionId, ingInput, nutInput);
+    }
+
+    private OcrLabelResult extractLabel(byte[] bytes, String contentType, String originalFilename, OcrLabelType labelType) {
+        // 1. Validate image format, size, magic bytes
+        imageValidator.validateBytes(bytes, contentType);
+
+        // 2. Assess focus/blur, contrast, and resolution viability
+        ImageQualityAssessor.ImageQualityResult quality = qualityAssessor.assess(bytes, labelType);
+        if (!quality.isUsable()) {
+            log.info("Image quality assessment failed for {}: {}", labelType, quality.issue());
+            throw new InvalidImageException(quality.issue().getCategory(), quality.userGuidance());
+        }
+
+        // 3. Ephemeral temp file with cryptographically random UUID name
         File tempFile = null;
         try {
-            String contentType = imageFile.getContentType();
             String ext = switch (contentType != null ? contentType.toLowerCase() : "") {
                 case "image/jpeg", "image/jpg" -> ".jpg";
                 case "image/webp" -> ".webp";
@@ -113,9 +173,8 @@ public class OcrService {
             };
             tempFile = File.createTempFile("ocr_ephemeral_" + UUID.randomUUID() + "_", ext);
 
-            try (InputStream in = imageFile.getInputStream();
-                 OutputStream out = new FileOutputStream(tempFile)) {
-                in.transferTo(out);
+            try (OutputStream out = new FileOutputStream(tempFile)) {
+                out.write(bytes);
             }
 
             OcrResult ocrResult = ocrProvider.extractText(tempFile, labelType);

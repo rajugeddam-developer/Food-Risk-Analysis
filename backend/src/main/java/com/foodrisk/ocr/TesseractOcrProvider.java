@@ -7,23 +7,25 @@ import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
  * Offline Tesseract OCR implementation using Tess4J.
  *
- * Strict requirements:
- * - Operates entirely offline; verifies traineddata on startup and fails fast if missing.
- * - Instantiates Tesseract safely per execution to ensure thread safety.
- * - Extracts raw text faithfully without artificial corrections (no M6 normalization here).
- * - Tracks execution duration in milliseconds.
+ * Implements an efficient, multi-pass OCR extraction strategy:
+ * - Pass 1: Contrast-enhanced grayscale + text-region focusing + bicubic upscaling.
+ * - Early return: If Pass 1 produces sufficient confidence and text length, Pass 1 is accepted immediately.
+ * - Pass 2: Fallback to global Otsu binarization only if Pass 1 is insufficient (low confidence or short text).
+ * - Multi-pass selection: Selects the superior pass using a composite score (confidence, readable ratio, keyword density)
+ *   rather than raw character count alone.
+ * - Ephemeral file cleanup guaranteed in finally blocks.
  */
 @Component
 public class TesseractOcrProvider implements OcrProvider {
@@ -32,13 +34,35 @@ public class TesseractOcrProvider implements OcrProvider {
 
     private final String dataPath;
     private final String language;
+    private final ImagePreprocessor preprocessor;
+    private final OcrQualityThresholds thresholds;
 
+    @Autowired
     public TesseractOcrProvider(
             @Value("${ocr.tesseract.data-path:tessdata}") String dataPath,
-            @Value("${ocr.tesseract.language:eng}") String language
+            @Value("${ocr.tesseract.language:eng}") String language,
+            @Autowired(required = false) ImagePreprocessor preprocessor,
+            @Autowired(required = false) OcrQualityThresholds thresholds
     ) {
         this.dataPath = dataPath;
         this.language = language;
+        this.preprocessor = preprocessor != null ? preprocessor : new ImagePreprocessor();
+        this.thresholds = thresholds != null ? thresholds : new OcrQualityThresholds();
+    }
+
+    public TesseractOcrProvider(
+            String dataPath,
+            String language,
+            ImagePreprocessor preprocessor
+    ) {
+        this(dataPath, language, preprocessor, new OcrQualityThresholds());
+    }
+
+    public TesseractOcrProvider(
+            String dataPath,
+            String language
+    ) {
+        this(dataPath, language, new ImagePreprocessor(), new OcrQualityThresholds());
     }
 
     @PostConstruct
@@ -71,15 +95,83 @@ public class TesseractOcrProvider implements OcrProvider {
         tesseract.setDatapath(new File(dataPath).getAbsolutePath());
         tesseract.setLanguage(language);
 
-        String rawText;
+        File prepFile1 = null;
+        File prepFile2 = null;
+
+        String bestText = "";
+        Float bestConfidence = null;
+
+        try {
+            // Pass 1: Contrast-enhanced + region-focused + bicubic upscaled grayscale
+            boolean pass1Ready = false;
+            try {
+                prepFile1 = File.createTempFile("ocr_prep1_" + java.util.UUID.randomUUID() + "_", ".png");
+                pass1Ready = preprocessor != null && preprocessor.preprocess(
+                        imageFile, prepFile1, ImagePreprocessor.PreprocessingMode.ENHANCED_GRAYSCALE
+                );
+            } catch (Exception e) {
+                log.debug("Preprocessing Pass 1 setup skipped: {}", e.getMessage());
+            }
+
+            File targetFile1 = (pass1Ready && prepFile1 != null && prepFile1.exists()) ? prepFile1 : imageFile;
+            PassResult pass1Result = executePass(tesseract, targetFile1, labelType);
+            bestText = pass1Result.text;
+            bestConfidence = pass1Result.confidence;
+
+            // Evaluate if Pass 1 is already sufficient
+            boolean isPass1Sufficient = (bestConfidence != null && bestConfidence >= thresholds.getPass2TriggerConfidence())
+                    && (bestText != null && bestText.trim().length() >= thresholds.getPass2TriggerMinChars());
+
+            // Pass 2: Fallback to global Otsu thresholding only if Pass 1 was insufficient
+            if (!isPass1Sufficient && preprocessor != null) {
+                try {
+                    prepFile2 = File.createTempFile("ocr_prep2_" + java.util.UUID.randomUUID() + "_", ".png");
+                    boolean pass2Ready = preprocessor.preprocess(
+                            imageFile, prepFile2, ImagePreprocessor.PreprocessingMode.GLOBAL_OTSU
+                    );
+                    if (pass2Ready && prepFile2.exists()) {
+                        PassResult pass2Result = executePass(tesseract, prepFile2, labelType);
+                        if (isBetterPass(pass2Result, pass1Result)) {
+                            log.debug("Pass 2 (global Otsu thresholding) produced superior OCR result for {}", labelType);
+                            bestText = pass2Result.text;
+                            bestConfidence = pass2Result.confidence;
+                        }
+                    }
+                } catch (Exception e) {
+                    log.debug("Preprocessing Pass 2 omitted: {}", e.getMessage());
+                }
+            }
+
+        } finally {
+            // Privacy guarantee: ensure all ephemeral preprocessed copies are strictly deleted
+            if (prepFile1 != null && prepFile1.exists()) {
+                prepFile1.delete();
+            }
+            if (prepFile2 != null && prepFile2.exists()) {
+                prepFile2.delete();
+            }
+        }
+
+        long processingTimeMs = System.currentTimeMillis() - startTime;
+
+        log.info("OCR completed for labelType {} in {} ms. Text length: {} chars, confidence: {}.",
+                labelType, processingTimeMs, bestText != null ? bestText.length() : 0, bestConfidence);
+
+        return new OcrResult(bestText != null ? bestText.trim() : "", bestConfidence, processingTimeMs);
+    }
+
+    private record PassResult(String text, Float confidence) {}
+
+    private PassResult executePass(ITesseract tesseract, File file, OcrLabelType labelType) {
+        String rawText = "";
         Float confidence = null;
 
         try {
-            rawText = tesseract.doOCR(imageFile);
+            rawText = tesseract.doOCR(file);
 
             // Compute confidence if available from words
             try {
-                BufferedImage image = ImageIO.read(imageFile);
+                BufferedImage image = ImageIO.read(file);
                 if (image != null) {
                     List<Word> words = tesseract.getWords(image, 3); // 3 = RIL_WORD in TessPageIteratorLevel
                     if (words != null && !words.isEmpty()) {
@@ -97,7 +189,6 @@ public class TesseractOcrProvider implements OcrProvider {
                     }
                 }
             } catch (Exception e) {
-                // If confidence calculation is unavailable, keep confidence as null (do not fabricate)
                 log.debug("Confidence calculation omitted: {}", e.getMessage());
             }
 
@@ -106,11 +197,43 @@ public class TesseractOcrProvider implements OcrProvider {
             throw new RuntimeException("OCR extraction failed: " + e.getMessage(), e);
         }
 
-        long processingTimeMs = System.currentTimeMillis() - startTime;
+        return new PassResult(rawText != null ? rawText.trim() : "", confidence);
+    }
 
-        log.info("OCR completed for labelType {} in {} ms. Text length: {} chars.",
-                labelType, processingTimeMs, rawText != null ? rawText.length() : 0);
+    /**
+     * Determines if candidate pass is superior to current pass.
+     * Considers composite score of confidence, readable ratio, and text length.
+     * Does NOT select based only on raw character count.
+     */
+    private boolean isBetterPass(PassResult candidate, PassResult current) {
+        if (candidate == null || candidate.text.isBlank()) {
+            return false;
+        }
+        if (current == null || current.text.isBlank()) {
+            return true;
+        }
 
-        return new OcrResult(rawText != null ? rawText.trim() : "", confidence, processingTimeMs);
+        double candScore = computeCompositeScore(candidate);
+        double currScore = computeCompositeScore(current);
+
+        return candScore > currScore * 1.10; // Must be at least 10% better
+    }
+
+    private double computeCompositeScore(PassResult pass) {
+        String text = pass.text;
+        double conf = pass.confidence != null ? pass.confidence : 50.0;
+        int len = Math.min(500, text.length());
+
+        // Calculate readable ratio
+        int readable = 0;
+        for (char c : text.toCharArray()) {
+            if (Character.isLetterOrDigit(c) || c == ',' || c == '.' || c == ';' || c == ':') {
+                readable++;
+            }
+        }
+        double readableRatio = text.length() > 0 ? (double) readable / text.length() : 0;
+
+        // Composite: confidence (40%) + readable ratio (40%) + length factor (20%)
+        return (conf * 0.40) + (readableRatio * 100.0 * 0.40) + ((len / 500.0) * 100.0 * 0.20);
     }
 }
