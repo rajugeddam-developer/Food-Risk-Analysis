@@ -3,7 +3,7 @@
  */
 import { UserProfile } from './authApi';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const TOKEN_KEY = 'fra_access_token';
 const USER_KEY = 'fra_auth_user';
 
