@@ -124,7 +124,7 @@ public class AnalysisSessionService {
         UUID authUserId = extractUserId(authentication);
         if (authUserId != null && sessionUser.getId() != null) {
             if (!authUserId.equals(sessionUser.getId())) {
-                throw new org.springframework.security.access.AccessDeniedException("You do not own this analysis session.");
+                throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this analysis session.");
             }
             return;
         }
@@ -134,7 +134,7 @@ public class AnalysisSessionService {
         boolean nameMatches = sessionUser.getName() != null && sessionUser.getName().equalsIgnoreCase(authName);
 
         if (!emailMatches && !nameMatches) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not own this analysis session.");
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this analysis session.");
         }
     }
 

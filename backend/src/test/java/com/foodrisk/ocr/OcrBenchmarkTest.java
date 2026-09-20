@@ -77,6 +77,11 @@ class OcrBenchmarkTest {
 
         int falseRejections = 0;
         int falseAcceptances = 0;
+        // Warm-up pass to ensure JIT compilation and classloading do not skew timing
+        for (BenchmarkSample sample : samples) {
+            qualityAssessor.assess(sample.imageBytes, sample.labelType);
+        }
+
         long totalTimeMs = 0;
 
         for (BenchmarkSample sample : samples) {
