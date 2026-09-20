@@ -6,6 +6,16 @@ package com.foodrisk.exception;
 public class NormalizationException extends RuntimeException {
     private final String errorCode;
 
+    public NormalizationException(String message) {
+        super(message);
+        this.errorCode = "NORMALIZATION_FAILED";
+    }
+
+    public NormalizationException(String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = "NORMALIZATION_FAILED";
+    }
+
     public NormalizationException(String errorCode, String message) {
         super(message);
         this.errorCode = errorCode;

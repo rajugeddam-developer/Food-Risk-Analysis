@@ -128,7 +128,7 @@ class OrchestratorConcurrencyTest {
                 50
         );
         NormalizedFoodData mockNorm = new NormalizedFoodData(
-                "Organic Oats", "40g", 40.0,
+                "Organic Oats", true, null, "40g", 40.0,
                 Collections.emptyList(), null, Collections.emptyList()
         );
         FoodClassificationResult mockClass = new FoodClassificationResult(
@@ -157,6 +157,7 @@ class OrchestratorConcurrencyTest {
 
         lenient().when(ocrService.processOcr(any(), any(), any())).thenReturn(mockOcr);
         lenient().when(normalizationService.normalize(any(), any())).thenReturn(mockNorm);
+        lenient().when(normalizationService.normalize(any(), any(), any())).thenReturn(mockNorm);
         lenient().when(classificationService.classifyProduct(any())).thenReturn(mockClass);
         lenient().when(ingredientRiskService.analyzeIngredientRisk(any())).thenReturn(mockRisk);
         lenient().when(nutritionService.analyzeNutrition(any())).thenReturn(mockNutrition);

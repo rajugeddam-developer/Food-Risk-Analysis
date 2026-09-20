@@ -40,15 +40,17 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
                 }
             });
 
-            if (environment.getPropertySources().contains(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME)) {
-                environment.getPropertySources().addAfter(
-                        StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                        new MapPropertySource(PROPERTY_SOURCE_NAME, props)
-                );
-            } else {
-                environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
+            if (!environment.getPropertySources().contains(PROPERTY_SOURCE_NAME)) {
+                if (environment.getPropertySources().contains(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME)) {
+                    environment.getPropertySources().addAfter(
+                            StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                            new MapPropertySource(PROPERTY_SOURCE_NAME, props)
+                    );
+                } else {
+                    environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
+                }
+                log.info("DotenvEnvironmentPostProcessor loaded {} properties from .env", props.size());
             }
-            log.info("DotenvEnvironmentPostProcessor loaded {} properties from .env", props.size());
         }
     }
 
@@ -65,8 +67,11 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
     }
 
     public static Map<String, Object> loadDotenvMap() {
+        return loadDotenvMap(findDotenvPath());
+    }
+
+    public static Map<String, Object> loadDotenvMap(Path envPath) {
         Map<String, Object> map = new HashMap<>();
-        Path envPath = findDotenvPath();
         if (envPath == null) {
             return map;
         }
@@ -100,24 +105,23 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
     }
 
     public static Path findDotenvPath() {
-        Path currentDir = Path.of(System.getProperty("user.dir", "."));
-        Path[] candidates = new Path[]{
-                currentDir.resolve(".env"),
-                currentDir.resolve("..").resolve(".env"),
-                currentDir.resolve("food-risk-analysis").resolve(".env"),
-                currentDir.resolve("backend").resolve(".env"),
-                currentDir.resolve("..").resolve("food-risk-analysis").resolve(".env")
-        };
+        return findDotenvPath(Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize());
+    }
 
-        for (Path candidate : candidates) {
-            try {
-                Path normalized = candidate.toAbsolutePath().normalize();
-                if (Files.isRegularFile(normalized)) {
-                    return normalized;
+    static Path findDotenvPath(Path startDirectory) {
+        Path fallbackExample = null;
+        for (Path directory = startDirectory.toAbsolutePath().normalize(); directory != null; directory = directory.getParent()) {
+            Path candidate = directory.resolve(".env");
+            if (Files.isRegularFile(candidate)) {
+                return candidate;
+            }
+            if (fallbackExample == null) {
+                Path candidateExample = directory.resolve(".env.example");
+                if (Files.isRegularFile(candidateExample)) {
+                    fallbackExample = candidateExample;
                 }
-            } catch (Exception ignored) {
             }
         }
-        return null;
+        return fallbackExample;
     }
 }

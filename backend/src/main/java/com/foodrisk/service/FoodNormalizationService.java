@@ -73,6 +73,9 @@ public class FoodNormalizationService {
 
         // Validate untrusted model output
         NormalizedFoodData validatedData = validateNormalizedData(rawNormalized);
+        if (validatedData == null) {
+            throw new NormalizationException("AI_MALFORMED_OUTPUT", "Food label normalization returned no data.");
+        }
         log.info("Successfully validated normalized food data for session {}", sessionId);
 
         return validatedData;

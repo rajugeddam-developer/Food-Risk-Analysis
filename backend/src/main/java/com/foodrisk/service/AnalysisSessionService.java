@@ -108,7 +108,10 @@ public class AnalysisSessionService {
     }
 
     public void validateSessionOwnership(FoodAnalysisSession session, org.springframework.security.core.Authentication authentication) {
-        if (session == null || session.getUser() == null) {
+        if (session == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Analysis session not found.");
+        }
+        if (session.getUser() == null) {
             // Guest session: access permitted within 15-min TTL
             return;
         }
@@ -117,9 +120,36 @@ public class AnalysisSessionService {
             throw new org.springframework.security.access.AccessDeniedException("Authentication required to access this analysis session.");
         }
 
-        if (!session.getUser().getEmail().equalsIgnoreCase(authentication.getName())) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to access this analysis session.");
+        User sessionUser = session.getUser();
+        UUID authUserId = extractUserId(authentication);
+        if (authUserId != null && sessionUser.getId() != null) {
+            if (!authUserId.equals(sessionUser.getId())) {
+                throw new org.springframework.security.access.AccessDeniedException("You do not own this analysis session.");
+            }
+            return;
         }
+
+        String authName = authentication.getName();
+        boolean emailMatches = sessionUser.getEmail() != null && sessionUser.getEmail().equalsIgnoreCase(authName);
+        boolean nameMatches = sessionUser.getName() != null && sessionUser.getName().equalsIgnoreCase(authName);
+
+        if (!emailMatches && !nameMatches) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this analysis session.");
+        }
+    }
+
+    private UUID extractUserId(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) return null;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User user) {
+            return user.getId();
+        }
+        if (authentication.getName() != null) {
+            try {
+                return UUID.fromString(authentication.getName());
+            } catch (IllegalArgumentException ignored) {}
+        }
+        return null;
     }
 
     /**

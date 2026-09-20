@@ -442,7 +442,18 @@ public class AnalysisOrchestratorService {
         }
 
         Instant geminiStart = Instant.now();
-        NormalizedFoodData normalizedData = normalizationService.normalize(sessionId, normRequest, imagePayloads);
+        NormalizedFoodData normalizedData;
+        try {
+            normalizedData = normalizationService.normalize(sessionId, normRequest, imagePayloads);
+        } catch (com.foodrisk.exception.NormalizationException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new com.foodrisk.exception.NormalizationException("Food label normalization failed.", ex);
+        }
+        if (normalizedData == null) {
+            log.error("Normalization returned null for session {}", sessionId);
+            throw new com.foodrisk.exception.NormalizationException("Food label normalization returned no data.");
+        }
         if (metrics != null) {
             metrics.recordGeminiDuration(Duration.between(geminiStart, Instant.now()));
         }

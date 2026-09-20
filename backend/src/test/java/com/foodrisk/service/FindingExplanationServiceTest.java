@@ -60,6 +60,8 @@ class FindingExplanationServiceTest {
     @BeforeEach
     void setUp() {
         sessionService = Mockito.mock(AnalysisSessionService.class);
+        Mockito.doCallRealMethod().when(sessionService).validateSessionAccess(any(), any());
+        Mockito.doCallRealMethod().when(sessionService).validateSessionOwnership(any(), any());
         contextStore = Mockito.mock(AnalysisContextStore.class);
         assessmentService = Mockito.mock(FoodRiskAssessmentService.class);
         geminiClient = Mockito.mock(GeminiClient.class);
@@ -145,7 +147,8 @@ class FindingExplanationServiceTest {
     @Test
     @DisplayName("Authenticated user mismatch throws AccessDeniedException")
     void testAccessDeniedOnUserMismatch() {
-        User owner = new User("owner@example.com", "hash", "Owner User");
+        User owner = new User("Owner User", "owner@example.com", "hash");
+        owner.setId(UUID.randomUUID());
         FoodAnalysisSession ownedSession = new FoodAnalysisSession(sessionId.toString(), com.foodrisk.entity.AnalysisStatus.COMPLETED, owner, Instant.now().plusSeconds(900));
         when(sessionService.getActiveSession(sessionId)).thenReturn(ownedSession);
 
