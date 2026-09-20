@@ -130,7 +130,7 @@ The backend requires configuration supplied via environment variables:
 | `TESSDATA_PATH` | Local directory containing `.traineddata` files | `tessdata` |
 | `TESSERACT_LANGUAGE` | Tesseract language code | `eng` |
 | `GEMINI_API_KEY` | Google Gemini API key (server-side only) | *(Configured via environment)* |
-| `GEMINI_MODEL` | Gemini generative model | `gemini-1.5-flash` |
+| `GEMINI_MODEL` | Gemini generative model | `gemini-3.6-flash` |
 | `GEMINI_TIMEOUT_SECONDS` | Gemini API request timeout | `30` |
 | `CORS_ALLOWED_ORIGINS` | Allowed frontend origins | `http://localhost:5173,http://localhost:4173` |
 

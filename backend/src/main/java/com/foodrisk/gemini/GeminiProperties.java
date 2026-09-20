@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class GeminiProperties {
 
     private String apiKey = "";
-    private String model = "gemini-1.5-flash";
+    private String model = "gemini-3.6-flash";
     private int timeoutSeconds = 30;
 
     public String getApiKey() {
@@ -36,7 +36,7 @@ public class GeminiProperties {
 
     public void setModel(String model) {
         if (model == null) {
-            this.model = "gemini-1.5-flash";
+            this.model = "gemini-3.6-flash";
             return;
         }
         String cleaned = model.trim();
@@ -46,7 +46,7 @@ public class GeminiProperties {
         if (cleaned.startsWith("models/")) {
             cleaned = cleaned.substring(7).trim();
         }
-        this.model = cleaned.isBlank() ? "gemini-1.5-flash" : cleaned;
+        this.model = cleaned.isBlank() ? "gemini-3.6-flash" : cleaned;
     }
 
     public int getTimeoutSeconds() {

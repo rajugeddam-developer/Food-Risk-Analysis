@@ -22,7 +22,7 @@ class GeminiClientTest {
     void setUp() {
         properties = new GeminiProperties();
         properties.setApiKey("test-api-key");
-        properties.setModel("gemini-1.5-flash");
+        properties.setModel("gemini-3.6-flash");
         properties.setTimeoutSeconds(5);
 
         promptBuilder = new GeminiPromptBuilder();
@@ -142,7 +142,7 @@ class GeminiClientTest {
         assertThat(url).doesNotContain("?key=");
         assertThat(url).doesNotContain("key=");
         assertThat(url).doesNotContain(properties.getApiKey());
-        assertThat(url).isEqualTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent");
+        assertThat(url).isEqualTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent");
     }
 
     @Test
@@ -155,7 +155,7 @@ class GeminiClientTest {
         GeminiClient testClient = new GeminiClient(properties, promptBuilder, objectMapper, builder.build());
 
         mockServer.expect(org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo(
-                        org.hamcrest.Matchers.equalTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")))
+                        org.hamcrest.Matchers.equalTo("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent")))
                 .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.header("x-goog-api-key", "test-api-key"))
                 .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo(
                         org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("key="))))
