@@ -19,7 +19,15 @@ public class GeminiProperties {
     }
 
     public void setApiKey(String apiKey) {
-        this.apiKey = apiKey != null ? apiKey.trim() : "";
+        if (apiKey == null) {
+            this.apiKey = "";
+            return;
+        }
+        String cleaned = apiKey.trim();
+        if ((cleaned.startsWith("\"") && cleaned.endsWith("\"")) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1).trim();
+        }
+        this.apiKey = cleaned;
     }
 
     public String getModel() {
@@ -27,7 +35,18 @@ public class GeminiProperties {
     }
 
     public void setModel(String model) {
-        this.model = model != null ? model.trim() : "gemini-1.5-flash";
+        if (model == null) {
+            this.model = "gemini-1.5-flash";
+            return;
+        }
+        String cleaned = model.trim();
+        if ((cleaned.startsWith("\"") && cleaned.endsWith("\"")) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1).trim();
+        }
+        if (cleaned.startsWith("models/")) {
+            cleaned = cleaned.substring(7).trim();
+        }
+        this.model = cleaned.isBlank() ? "gemini-1.5-flash" : cleaned;
     }
 
     public int getTimeoutSeconds() {

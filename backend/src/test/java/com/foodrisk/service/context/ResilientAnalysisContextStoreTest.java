@@ -47,7 +47,7 @@ class ResilientAnalysisContextStoreTest {
         // Redis throws on store and get
         doThrow(new RedisConnectionFailureException("Redis server unreachable"))
                 .when(mockRedisStore).storeNormalizedFoodData(any(), any());
-        doThrow(new RedisConnectionFailureException("Redis server unreachable"))
+        lenient().doThrow(new RedisConnectionFailureException("Redis server unreachable"))
                 .when(mockRedisStore).getNormalizedFoodData(any());
 
         // Call resilient store

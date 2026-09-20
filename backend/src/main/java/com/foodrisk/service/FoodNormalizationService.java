@@ -176,48 +176,71 @@ public class FoodNormalizationService {
         }
 
         NormalizedNutrition nutrition = null;
-        if (nutritionText != null && !nutritionText.isBlank()) {
-            Double energy = extractNutrient(nutritionText, "(?i)(?:energy|calories|kcal)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double protein = extractNutrient(nutritionText, "(?i)protein[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double carbs = extractNutrient(nutritionText, "(?i)(?:carbohydrate|carbs)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double sugars = extractNutrient(nutritionText, "(?i)(?:total\\s+sugars?|sugars?)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double addedSugars = extractNutrient(nutritionText, "(?i)added\\s+sugars?[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double totalFat = extractNutrient(nutritionText, "(?i)(?:total\\s+fat|fat)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double satFat = extractNutrient(nutritionText, "(?i)saturated\\s+fat[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double transFat = extractNutrient(nutritionText, "(?i)trans\\s+fat[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            Double fiber = extractNutrient(nutritionText, "(?i)(?:dietary\\s+fiber|fiber)[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
-            
-            Double sodium = extractNutrient(nutritionText, "(?i)sodium[:\\s]*([0-9]+(?:\\.[0-9]+)?)\\s*mg");
+        String nutritionSource = (nutritionText != null && !nutritionText.isBlank()) ? nutritionText : "";
+        if (nutritionSource.isBlank() && ingredientText != null && !ingredientText.isBlank()) {
+            // Secondary fallback: Single photo packaging back contains both ingredients and nutrition
+            nutritionSource = ingredientText;
+        }
+
+        if (!nutritionSource.isBlank()) {
+            Double energy = extractNutrient(nutritionSource,
+                    "(?i)(?:energy|calories|kcal)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)",
+                    "(?i)([0-9]+(?:\\.[0-9]+)?)\\s*(?:kcal|calories)");
+            Double protein = extractNutrient(nutritionSource,
+                    "(?i)protein\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double carbs = extractNutrient(nutritionSource,
+                    "(?i)(?:total\\s+carbohydrates?|carbohydrates?|carbs)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double sugars = extractNutrient(nutritionSource,
+                    "(?i)(?:total\\s+sugars?|of\\s+which\\s+sugars?|sugars?)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double addedSugars = extractNutrient(nutritionSource,
+                    "(?i)(?:added\\s+sugars?|of\\s+which\\s+added\\s+sugars?)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double totalFat = extractNutrient(nutritionSource,
+                    "(?i)(?:total\\s+fat|fat)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double satFat = extractNutrient(nutritionSource,
+                    "(?i)(?:saturated\\s+fat|sat\\.?\\s*fat|of\\s+which\\s+saturates?)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double transFat = extractNutrient(nutritionSource,
+                    "(?i)trans\\s+fat(?:ty\\s+acids?)?\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+            Double fiber = extractNutrient(nutritionSource,
+                    "(?i)(?:dietary\\s+fiber|dietary\\s+fibre|fiber|fibre)\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
+
+            Double sodium = extractNutrient(nutritionSource,
+                    "(?i)sodium\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)\\s*mg");
             if (sodium == null) {
-                Double sodiumG = extractNutrient(nutritionText, "(?i)sodium[:\\s]*([0-9]+(?:\\.[0-9]+)?)\\s*g");
+                Double sodiumG = extractNutrient(nutritionSource,
+                        "(?i)sodium\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)\\s*g");
                 if (sodiumG != null) {
                     sodium = sodiumG * 1000.0;
                 }
             }
             if (sodium == null) {
-                Double saltG = extractNutrient(nutritionText, "(?i)salt[:\\s]*([0-9]+(?:\\.[0-9]+)?)");
+                Double saltG = extractNutrient(nutritionSource,
+                        "(?i)salt\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)");
                 if (saltG != null) {
                     sodium = saltG * 400.0; // standard estimation of sodium in table salt
                 }
             }
 
-            nutrition = new NormalizedNutrition(
-                    "per 100g",
-                    energy,
-                    protein,
-                    carbs,
-                    sugars,
-                    addedSugars,
-                    totalFat,
-                    satFat,
-                    transFat,
-                    sodium,
-                    fiber,
-                    List.of()
-            );
+            // Only create nutrition object if at least one nutrient was found
+            if (energy != null || protein != null || carbs != null || totalFat != null || sugars != null || sodium != null) {
+                nutrition = new NormalizedNutrition(
+                        "per 100g",
+                        energy,
+                        protein,
+                        carbs,
+                        sugars,
+                        addedSugars,
+                        totalFat,
+                        satFat,
+                        transFat,
+                        sodium,
+                        fiber,
+                        List.of()
+                );
+            }
         }
 
-        Double servingGrams = extractNutrient(nutritionText != null ? nutritionText : "", "(?i)serving\\s*size[:\\s]*([0-9]+(?:\\.[0-9]+)?)\\s*g");
+        Double servingGrams = extractNutrient(nutritionSource != null ? nutritionSource : "",
+                "(?i)serving\\s*size\\s*(?:\\([^)]*\\))?\\s*[:\\s-]*([0-9]+(?:\\.[0-9]+)?)\\s*g");
         String servingSize = servingGrams != null ? servingGrams + "g" : null;
 
         return new NormalizedFoodData(
@@ -230,12 +253,15 @@ public class FoodNormalizationService {
         );
     }
 
-    private Double extractNutrient(String text, String regex) {
-        Matcher m = Pattern.compile(regex).matcher(text);
-        if (m.find()) {
-            try {
-                return Double.parseDouble(m.group(1));
-            } catch (NumberFormatException ignored) {}
+    private Double extractNutrient(String text, String... regexPatterns) {
+        if (text == null || text.isBlank()) return null;
+        for (String regex : regexPatterns) {
+            Matcher m = Pattern.compile(regex).matcher(text);
+            if (m.find()) {
+                try {
+                    return Double.parseDouble(m.group(1));
+                } catch (NumberFormatException ignored) {}
+            }
         }
         return null;
     }

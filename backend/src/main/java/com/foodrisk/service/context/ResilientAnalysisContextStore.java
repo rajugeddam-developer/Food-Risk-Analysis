@@ -33,6 +33,9 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
     private final InMemoryAnalysisContextStore inMemoryStore;
     private final RedisAnalysisContextStore redisStore;
     private final AtomicBoolean redisWarned = new AtomicBoolean(false);
+    private volatile boolean redisOperational = true;
+    private volatile long lastRedisFailureTime = 0;
+    private static final long REDIS_RETRY_INTERVAL_MS = 60_000;
 
     public ResilientAnalysisContextStore(
             InMemoryAnalysisContextStore inMemoryStore,
@@ -42,28 +45,50 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
         this.redisStore = redisStore;
     }
 
+    private boolean isRedisAvailable() {
+        if (redisStore == null) {
+            return false;
+        }
+        if (!redisOperational) {
+            if (System.currentTimeMillis() - lastRedisFailureTime > REDIS_RETRY_INTERVAL_MS) {
+                // Allow a single retry probe after 60 seconds
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void handleRedisError(String operation, Exception e) {
+        redisOperational = false;
+        lastRedisFailureTime = System.currentTimeMillis();
+        logRedisFallback(operation, e);
+    }
+
     @Override
     public void storeNormalizedFoodData(UUID sessionId, NormalizedFoodData data) {
         inMemoryStore.storeNormalizedFoodData(sessionId, data);
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 redisStore.storeNormalizedFoodData(sessionId, data);
+                redisOperational = true;
             } catch (Exception e) {
-                logRedisFallback("storeNormalizedFoodData", e);
+                handleRedisError("storeNormalizedFoodData", e);
             }
         }
     }
 
     @Override
     public Optional<NormalizedFoodData> getNormalizedFoodData(UUID sessionId) {
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 Optional<NormalizedFoodData> fromRedis = redisStore.getNormalizedFoodData(sessionId);
+                redisOperational = true;
                 if (fromRedis.isPresent()) {
                     return fromRedis;
                 }
             } catch (Exception e) {
-                logRedisFallback("getNormalizedFoodData", e);
+                handleRedisError("getNormalizedFoodData", e);
             }
         }
         return inMemoryStore.getNormalizedFoodData(sessionId);
@@ -72,25 +97,27 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
     @Override
     public void storeClassificationResult(UUID sessionId, FoodClassificationResult result) {
         inMemoryStore.storeClassificationResult(sessionId, result);
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 redisStore.storeClassificationResult(sessionId, result);
+                redisOperational = true;
             } catch (Exception e) {
-                logRedisFallback("storeClassificationResult", e);
+                handleRedisError("storeClassificationResult", e);
             }
         }
     }
 
     @Override
     public Optional<FoodClassificationResult> getClassificationResult(UUID sessionId) {
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 Optional<FoodClassificationResult> fromRedis = redisStore.getClassificationResult(sessionId);
+                redisOperational = true;
                 if (fromRedis.isPresent()) {
                     return fromRedis;
                 }
             } catch (Exception e) {
-                logRedisFallback("getClassificationResult", e);
+                handleRedisError("getClassificationResult", e);
             }
         }
         return inMemoryStore.getClassificationResult(sessionId);
@@ -99,25 +126,27 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
     @Override
     public void storeIngredientRiskResult(UUID sessionId, IngredientRiskAnalysisResult result) {
         inMemoryStore.storeIngredientRiskResult(sessionId, result);
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 redisStore.storeIngredientRiskResult(sessionId, result);
+                redisOperational = true;
             } catch (Exception e) {
-                logRedisFallback("storeIngredientRiskResult", e);
+                handleRedisError("storeIngredientRiskResult", e);
             }
         }
     }
 
     @Override
     public Optional<IngredientRiskAnalysisResult> getIngredientRiskResult(UUID sessionId) {
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 Optional<IngredientRiskAnalysisResult> fromRedis = redisStore.getIngredientRiskResult(sessionId);
+                redisOperational = true;
                 if (fromRedis.isPresent()) {
                     return fromRedis;
                 }
             } catch (Exception e) {
-                logRedisFallback("getIngredientRiskResult", e);
+                handleRedisError("getIngredientRiskResult", e);
             }
         }
         return inMemoryStore.getIngredientRiskResult(sessionId);
@@ -126,25 +155,27 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
     @Override
     public void storeNutritionResult(UUID sessionId, NutritionAnalysisResult result) {
         inMemoryStore.storeNutritionResult(sessionId, result);
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 redisStore.storeNutritionResult(sessionId, result);
+                redisOperational = true;
             } catch (Exception e) {
-                logRedisFallback("storeNutritionResult", e);
+                handleRedisError("storeNutritionResult", e);
             }
         }
     }
 
     @Override
     public Optional<NutritionAnalysisResult> getNutritionResult(UUID sessionId) {
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 Optional<NutritionAnalysisResult> fromRedis = redisStore.getNutritionResult(sessionId);
+                redisOperational = true;
                 if (fromRedis.isPresent()) {
                     return fromRedis;
                 }
             } catch (Exception e) {
-                logRedisFallback("getNutritionResult", e);
+                handleRedisError("getNutritionResult", e);
             }
         }
         return inMemoryStore.getNutritionResult(sessionId);
@@ -153,25 +184,27 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
     @Override
     public void storeFoodRiskAssessment(UUID sessionId, FoodRiskAssessment assessment) {
         inMemoryStore.storeFoodRiskAssessment(sessionId, assessment);
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 redisStore.storeFoodRiskAssessment(sessionId, assessment);
+                redisOperational = true;
             } catch (Exception e) {
-                logRedisFallback("storeFoodRiskAssessment", e);
+                handleRedisError("storeFoodRiskAssessment", e);
             }
         }
     }
 
     @Override
     public Optional<FoodRiskAssessment> getFoodRiskAssessment(UUID sessionId) {
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 Optional<FoodRiskAssessment> fromRedis = redisStore.getFoodRiskAssessment(sessionId);
+                redisOperational = true;
                 if (fromRedis.isPresent()) {
                     return fromRedis;
                 }
             } catch (Exception e) {
-                logRedisFallback("getFoodRiskAssessment", e);
+                handleRedisError("getFoodRiskAssessment", e);
             }
         }
         return inMemoryStore.getFoodRiskAssessment(sessionId);
@@ -180,24 +213,26 @@ public class ResilientAnalysisContextStore implements AnalysisContextStore {
     @Override
     public void remove(UUID sessionId) {
         inMemoryStore.remove(sessionId);
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 redisStore.remove(sessionId);
+                redisOperational = true;
             } catch (Exception e) {
-                logRedisFallback("remove", e);
+                handleRedisError("remove", e);
             }
         }
     }
 
     @Override
     public boolean contains(UUID sessionId) {
-        if (redisStore != null) {
+        if (isRedisAvailable()) {
             try {
                 if (redisStore.contains(sessionId)) {
+                    redisOperational = true;
                     return true;
                 }
             } catch (Exception e) {
-                logRedisFallback("contains", e);
+                handleRedisError("contains", e);
             }
         }
         return inMemoryStore.contains(sessionId);

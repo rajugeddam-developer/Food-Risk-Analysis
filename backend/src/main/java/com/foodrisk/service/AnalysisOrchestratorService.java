@@ -141,7 +141,7 @@ public class AnalysisOrchestratorService {
             @Autowired(required = false) ImageValidator imageValidator,
             @Autowired(required = false) AnalysisMetrics metrics,
             @Qualifier("analysisTaskExecutor") @Autowired(required = false) Executor orchestrationExecutor,
-            @Value("${analysis.orchestrator.timeout-seconds:120}") int timeoutSeconds
+            @Value("${analysis.orchestrator.timeout-seconds:180}") int timeoutSeconds
     ) {
         this.sessionService = sessionService;
         this.ocrService = ocrService;

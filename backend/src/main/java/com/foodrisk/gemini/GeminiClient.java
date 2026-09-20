@@ -76,6 +76,7 @@ public class GeminiClient {
     private static final List<String> CANDIDATE_MODELS = List.of(
             "gemini-1.5-flash",
             "gemini-2.0-flash",
+            "gemini-1.5-flash-latest",
             "gemini-1.5-pro"
     );
 
@@ -84,9 +85,14 @@ public class GeminiClient {
     }
 
     public String buildGenerateContentUrl(String modelName) {
+        return buildGenerateContentUrl(modelName, "v1beta");
+    }
+
+    public String buildGenerateContentUrl(String modelName, String apiVersion) {
         String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName.trim() : "gemini-1.5-flash";
-        return "%s/%s:generateContent".formatted(
-                GEMINI_API_BASE,
+        String version = (apiVersion != null && !apiVersion.isBlank()) ? apiVersion.trim() : "v1beta";
+        return "https://generativelanguage.googleapis.com/%s/models/%s:generateContent".formatted(
+                version,
                 effectiveModel
         );
     }
@@ -160,55 +166,66 @@ public class GeminiClient {
 
         for (int i = 0; i < modelsToTry.size(); i++) {
             String model = modelsToTry.get(i);
-            String requestUrl = buildGenerateContentUrl(model);
+            // Try v1beta first, then v1 if 404
+            List<String> apiVersions = List.of("v1beta", "v1");
 
-            log.info("Sending food normalization prompt to Gemini model '{}' (attempt {}/{}, images: {}, timeout: {}s)",
-                    model, i + 1, modelsToTry.size(), (hasImages ? images.size() : 0), properties.getTimeoutSeconds());
+            for (String apiVersion : apiVersions) {
+                String requestUrl = buildGenerateContentUrl(model, apiVersion);
 
-            try {
-                String rawResponseBody = restClient.post()
-                        .uri(requestUrl)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(GEMINI_API_KEY_HEADER, properties.getApiKey())
-                        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                        .body(requestPayload)
-                        .retrieve()
-                        .onStatus(HttpStatusCode::isError, (req, resp) -> {
-                            int code = resp.getStatusCode().value();
-                            log.warn("Gemini API error status {} for model '{}'", code, model);
-                            if (code == 401 || code == 403) {
-                                throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.");
-                            } else if (code == 429) {
-                                throw new NormalizationException("AI_RATE_LIMIT_EXCEEDED", "AI normalization service is currently busy.");
-                            } else if (code == 400) {
-                                throw new NormalizationException("AI_BAD_REQUEST", "Invalid request submitted to AI normalization service.");
-                            } else {
-                                throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "Gemini model " + model + " unavailable (HTTP " + code + ").");
-                            }
-                        })
-                        .body(String.class);
+                log.info("Sending food normalization prompt to Gemini model '{}' [{}] (attempt {}/{}, images: {}, timeout: {}s)",
+                        model, apiVersion, i + 1, modelsToTry.size(), (hasImages ? images.size() : 0), properties.getTimeoutSeconds());
 
-                return parseGeminiResponse(rawResponseBody);
+                try {
+                    String rawResponseBody = restClient.post()
+                            .uri(requestUrl)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(GEMINI_API_KEY_HEADER, properties.getApiKey())
+                            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                            .body(requestPayload)
+                            .retrieve()
+                            .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                                int code = resp.getStatusCode().value();
+                                String errorBody = "";
+                                try {
+                                    errorBody = new String(resp.getBody().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                                } catch (Exception ignored) {}
+                                log.warn("Gemini API error status {} for model '{}' [{}]: {}", code, model, apiVersion, errorBody);
 
-            } catch (NormalizationException ne) {
-                if ("AI_AUTHENTICATION_ERROR".equals(ne.getErrorCode())) {
-                    throw ne;
+                                if (code == 401 || code == 403) {
+                                    throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.");
+                                } else if (code == 429) {
+                                    throw new NormalizationException("AI_RATE_LIMIT_EXCEEDED", "AI normalization service is currently busy.");
+                                } else if (code == 400) {
+                                    throw new NormalizationException("AI_BAD_REQUEST", "Invalid request submitted to AI normalization service.");
+                                } else {
+                                    throw new NormalizationException("AI_SERVICE_UNAVAILABLE", "Gemini model " + model + " unavailable (HTTP " + code + ").");
+                                }
+                            })
+                            .body(String.class);
+
+                    return parseGeminiResponse(rawResponseBody);
+
+                } catch (NormalizationException ne) {
+                    if ("AI_AUTHENTICATION_ERROR".equals(ne.getErrorCode())) {
+                        throw ne;
+                    }
+                    log.warn("Normalization attempt with model '{}' [{}] failed: {}. Checking next...", model, apiVersion, ne.getMessage());
+                    lastException = ne;
+                } catch (ResourceAccessException rae) {
+                    log.warn("Gemini connection timed out for model '{}' [{}]: {}. Checking next...", model, apiVersion, rae.getMessage());
+                    lastException = new NormalizationException("AI_TIMEOUT", "Food normalization request timed out on " + model, rae);
+                    break; // timeout -> don't re-try same model on different endpoint version
+                } catch (RestClientResponseException rcre) {
+                    int code = rcre.getStatusCode().value();
+                    log.warn("Gemini RestClient exception ({}) for model '{}' [{}]. Checking next...", code, model, apiVersion);
+                    if (code == 401 || code == 403) {
+                        throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.", rcre);
+                    }
+                    lastException = new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization failed on " + model, rcre);
+                } catch (Exception ex) {
+                    log.warn("Unexpected error during Gemini normalization on model '{}' [{}]: {}", model, apiVersion, ex.getMessage());
+                    lastException = new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization failed on " + model, ex);
                 }
-                log.warn("Normalization attempt with model '{}' failed: {}. Checking next fallback model...", model, ne.getMessage());
-                lastException = ne;
-            } catch (ResourceAccessException rae) {
-                log.warn("Gemini connection timed out for model '{}': {}. Checking next fallback model...", model, rae.getMessage());
-                lastException = new NormalizationException("AI_TIMEOUT", "Food normalization request timed out on " + model, rae);
-            } catch (RestClientResponseException rcre) {
-                int code = rcre.getStatusCode().value();
-                log.warn("Gemini RestClient exception ({}) for model '{}'. Checking next fallback model...", code, model);
-                if (code == 401 || code == 403) {
-                    throw new NormalizationException("AI_AUTHENTICATION_ERROR", "AI service authentication failed.", rcre);
-                }
-                lastException = new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization failed on " + model, rcre);
-            } catch (Exception ex) {
-                log.warn("Unexpected error during Gemini normalization on model '{}': {}", model, ex.getMessage());
-                lastException = new NormalizationException("AI_SERVICE_UNAVAILABLE", "Food normalization failed on " + model, ex);
             }
         }
 

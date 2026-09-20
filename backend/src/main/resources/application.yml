@@ -20,7 +20,7 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-      timeout: 2000ms
+      timeout: 1000ms
 
   jpa:
     hibernate:
@@ -81,7 +81,7 @@ analysis:
   session:
     ttl-minutes: ${ANALYSIS_SESSION_TTL_MINUTES:15}
   orchestrator:
-    timeout-seconds: ${ANALYSIS_TIMEOUT_SECONDS:120}
+    timeout-seconds: ${ANALYSIS_TIMEOUT_SECONDS:180}
 
 rate-limit:
   analyze-per-minute: ${RATE_LIMIT_ANALYZE:10}
