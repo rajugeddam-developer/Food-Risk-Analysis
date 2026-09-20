@@ -94,28 +94,44 @@ public class OcrService {
         OcrLabelResult ingredientResult = OcrLabelResult.missing();
         OcrLabelResult nutritionResult = OcrLabelResult.missing();
 
+        // Single-image dual scan deduplication: if both payloads point to the exact same image input, extract once
+        boolean isSameImage = hasIngredient && hasNutrition && (ingredientImage == nutritionImage);
+
         try {
-            // Process both images concurrently if both are provided
-            java.util.concurrent.CompletableFuture<OcrLabelResult> ingFuture = hasIngredient
-                    ? java.util.concurrent.CompletableFuture.supplyAsync(() -> extractLabel(
+            if (isSameImage) {
+                log.info("Session {}: Identical image supplied for ingredients & nutrition. Running single-pass OCR deduplication.", sessionId);
+                ingredientResult = extractLabel(
+                        ingredientImage.bytes(),
+                        ingredientImage.contentType(),
+                        ingredientImage.originalFilename(),
+                        OcrLabelType.INGREDIENTS
+                );
+                // Share the same extracted text result for both
+                nutritionResult = new OcrLabelResult(
+                        ingredientResult.rawText(),
+                        ingredientResult.confidence(),
+                        ingredientResult.processingTimeMs(),
+                        true
+                );
+            } else {
+                // Execute sequentially to prevent CPU starvation on low-core/throttled cloud instances (Render)
+                if (hasIngredient) {
+                    ingredientResult = extractLabel(
                             ingredientImage.bytes(),
                             ingredientImage.contentType(),
                             ingredientImage.originalFilename(),
                             OcrLabelType.INGREDIENTS
-                    ))
-                    : java.util.concurrent.CompletableFuture.completedFuture(OcrLabelResult.missing());
-
-            java.util.concurrent.CompletableFuture<OcrLabelResult> nutFuture = hasNutrition
-                    ? java.util.concurrent.CompletableFuture.supplyAsync(() -> extractLabel(
+                    );
+                }
+                if (hasNutrition) {
+                    nutritionResult = extractLabel(
                             nutritionImage.bytes(),
                             nutritionImage.contentType(),
                             nutritionImage.originalFilename(),
                             OcrLabelType.NUTRITION
-                    ))
-                    : java.util.concurrent.CompletableFuture.completedFuture(OcrLabelResult.missing());
-
-            ingredientResult = ingFuture.join();
-            nutritionResult = nutFuture.join();
+                    );
+                }
+            }
 
             long totalTime = System.currentTimeMillis() - startAll;
             log.info("Completed OCR processing for session {} in {} ms (ingredients: {}, nutrition: {})",

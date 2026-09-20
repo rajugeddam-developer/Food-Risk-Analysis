@@ -74,9 +74,9 @@ public class GeminiClient {
     }
 
     private static final List<String> CANDIDATE_MODELS = List.of(
-            "gemini-3.5-flash-lite",
-            "gemini-3.7-flash",
-            "gemini-3.5-flash"
+            "gemini-1.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-pro"
     );
 
     public String buildGenerateContentUrl() {
@@ -84,7 +84,7 @@ public class GeminiClient {
     }
 
     public String buildGenerateContentUrl(String modelName) {
-        String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName.trim() : "gemini-3.5-flash-lite";
+        String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName.trim() : "gemini-1.5-flash";
         return "%s/%s:generateContent".formatted(
                 GEMINI_API_BASE,
                 effectiveModel

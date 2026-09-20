@@ -76,10 +76,10 @@ public class ImagePreprocessor {
         // 2. Text Scaling: Cap oversized photos and upscale small text
         int maxDim = Math.max(width, height);
         double scale = 1.0;
-        if (maxDim > 1600) {
-            scale = 1600.0 / maxDim; // Downscale oversized camera photos to avoid OCR timeouts on cloud hosts
-        } else if (maxDim < 900) {
-            scale = 1.4; // Upscale small text so Tesseract LSTM has sufficient pixel stroke width
+        if (maxDim > 1200) {
+            scale = 1200.0 / maxDim; // Downscale oversized camera photos to avoid OCR timeouts on cloud hosts
+        } else if (maxDim < 800) {
+            scale = 1.3; // Upscale small text so Tesseract LSTM has sufficient pixel stroke width
         }
 
         int targetWidth = (int) Math.round(width * scale);

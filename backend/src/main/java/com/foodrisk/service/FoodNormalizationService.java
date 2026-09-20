@@ -48,6 +48,14 @@ public class FoodNormalizationService {
             throw new IllegalArgumentException("NormalizeRequest cannot be null");
         }
 
+        boolean ingBlank = request.ingredientText() == null || request.ingredientText().isBlank();
+        boolean nutBlank = request.nutritionText() == null || request.nutritionText().isBlank();
+        boolean hasImages = images != null && !images.isEmpty();
+
+        if (ingBlank && nutBlank && !hasImages) {
+            throw new IllegalArgumentException("At least one OCR text section (ingredients or nutrition) must be provided.");
+        }
+
         // Validate session is active and not expired
         FoodAnalysisSession session = sessionService.getActiveSession(sessionId);
 

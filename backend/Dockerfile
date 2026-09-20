@@ -59,7 +59,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
 # Optimized containerized JVM flags
 ENTRYPOINT ["java", \
     "-XX:+UseG1GC", \
-    "-XX:MaxRAMPercentage=75.0", \
+    "-Xmx320m", \
     "-XX:+ExitOnOutOfMemoryError", \
     "-Djava.security.egd=file:/dev/./urandom", \
     "-jar", "/app/app.jar"]

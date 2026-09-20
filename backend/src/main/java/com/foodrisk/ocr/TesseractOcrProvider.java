@@ -94,6 +94,7 @@ public class TesseractOcrProvider implements OcrProvider {
         ITesseract tesseract = new Tesseract();
         tesseract.setDatapath(new File(dataPath).getAbsolutePath());
         tesseract.setLanguage(language);
+        tesseract.setTessVariable("user_defined_dpi", "300");
 
         File prepFile1 = null;
         File prepFile2 = null;
@@ -119,10 +120,12 @@ public class TesseractOcrProvider implements OcrProvider {
             bestConfidence = pass1Result.confidence;
 
             // Evaluate if Pass 1 is already sufficient
-            boolean isPass1Sufficient = (bestConfidence != null && bestConfidence >= thresholds.getPass2TriggerConfidence())
-                    && (bestText != null && bestText.trim().length() >= thresholds.getPass2TriggerMinChars());
+            // Fast exit: if text is meaningful (>= 20 characters), accept immediately to avoid expensive Pass 2 on cloud CPU
+            boolean isPass1Sufficient = (bestText != null && bestText.trim().length() >= 20)
+                    || ((bestConfidence != null && bestConfidence >= thresholds.getPass2TriggerConfidence())
+                    && (bestText != null && bestText.trim().length() >= thresholds.getPass2TriggerMinChars()));
 
-            // Pass 2: Fallback to global Otsu thresholding only if Pass 1 was insufficient
+            // Pass 2: Fallback to global Otsu thresholding only if Pass 1 produced virtually no text
             if (!isPass1Sufficient && preprocessor != null) {
                 try {
                     prepFile2 = File.createTempFile("ocr_prep2_" + java.util.UUID.randomUUID() + "_", ".png");
@@ -169,27 +172,18 @@ public class TesseractOcrProvider implements OcrProvider {
         try {
             rawText = tesseract.doOCR(file);
 
-            // Compute confidence if available from words
-            try {
-                BufferedImage image = ImageIO.read(file);
-                if (image != null) {
-                    List<Word> words = tesseract.getWords(image, 3); // 3 = RIL_WORD in TessPageIteratorLevel
-                    if (words != null && !words.isEmpty()) {
-                        float sum = 0;
-                        int count = 0;
-                        for (Word w : words) {
-                            if (w.getConfidence() > 0) {
-                                sum += w.getConfidence();
-                                count++;
-                            }
-                        }
-                        if (count > 0) {
-                            confidence = sum / count;
-                        }
+            if (rawText != null && !rawText.isBlank()) {
+                // Efficient single-pass confidence estimation based on character readability ratio & token density
+                // Avoids calling tesseract.getWords() which re-runs full OCR a second time on the same image
+                int readable = 0;
+                String trimmed = rawText.trim();
+                for (char c : trimmed.toCharArray()) {
+                    if (Character.isLetterOrDigit(c) || c == ',' || c == '.' || c == ';' || c == ':' || c == '%' || c == '(' || c == ')') {
+                        readable++;
                     }
                 }
-            } catch (Exception e) {
-                log.debug("Confidence calculation omitted: {}", e.getMessage());
+                double ratio = trimmed.length() > 0 ? (double) readable / trimmed.length() : 0.0;
+                confidence = (float) Math.min(98.0, Math.max(40.0, ratio * 95.0));
             }
 
         } catch (TesseractException e) {

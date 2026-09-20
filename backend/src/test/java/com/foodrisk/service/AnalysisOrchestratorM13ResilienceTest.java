@@ -173,7 +173,7 @@ class AnalysisOrchestratorM13ResilienceTest {
                 200
         );
         when(ocrService.processOcr(eq(sessionId), any(), any())).thenReturn(validOcr);
-        when(normalizationService.normalize(eq(sessionId), any()))
+        when(normalizationService.normalize(eq(sessionId), any(), any()))
                 .thenThrow(new NormalizationException("AI_SERVICE_UNAVAILABLE", "503 Service Unavailable"));
 
         orchestrator.startAnalysisAsync(sessionId, ingredientFile, nutritionFile);
